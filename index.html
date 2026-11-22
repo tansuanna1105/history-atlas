@@ -2361,7 +2361,10 @@ init();
 (function loadGeo(){
   const box=document.querySelector('.mapbox');
   if(!box)return;
+  /* 固定 commit：data 文件在此提交后未再变动，用完整 SHA 锁定，绕开 @main 分支缓存同步延迟 */
+  const PIN='fcc3215eb169c8c1bb753fabd4feeb1a39244776';
   const BASES=['data/',
+    'https://gcore.jsdelivr.net/gh/tansuanna1209/history-atlas@'+PIN+'/',
     'https://gcore.jsdelivr.net/gh/tansuanna1209/history-atlas@main/',
     'https://fastly.jsdelivr.net/gh/tansuanna1209/history-atlas@main/'];
   const tip=document.createElement('div');
