@@ -2355,56 +2355,83 @@ function init(){
 }
 init();
 
-/* ===== Web版：疆域/世界政区大数据后台加载（首屏已秒开） =====
-   多源竞速：gcore CDN（国内快）与 GitHub Pages（保底）同时拉，谁先完整返回用谁。 */
+/* ===== Web版：疆域/世界政区/底图 后台加载（首屏已秒开） =====
+   三源竞速：本地(GitHub Pages) + gcore CDN + fastly CDN，任一成功即接管；
+   全部失败才提示并可重试。疆域与底图各自独立，谁先到先画。 */
 (function loadGeo(){
   const box=document.querySelector('.mapbox');
   if(!box)return;
+  const BASES=['data/',
+    'https://gcore.jsdelivr.net/gh/tansuanna1209/history-atlas@main/',
+    'https://fastly.jsdelivr.net/gh/tansuanna1209/history-atlas@main/'];
   const tip=document.createElement('div');
   tip.className='geo-tip';
-  tip.innerHTML='<span class="geo-spin"></span> 疆域数据加载中…';
   box.appendChild(tip);
-  const CDN='https://gcore.jsdelivr.net/gh/tansuanna1209/history-atlas@main/';
-  const LOCAL='data/';
-  /* 单文件多源竞速：缓存新鲜度优先本地，随后 CDN；任一成功即定 */
-  const raceJSON=function(name){
-    const sources=[LOCAL+name, CDN+name];
+  const setTip=function(html){tip.innerHTML=html;};
+  const spin='<span class="geo-spin"></span> ';
+  setTip(spin+'疆域数据加载中…');
+
+  /* 通用多源竞速：validator 校验内容合法；任一源成功即 resolve，全部失败才 reject */
+  const race=function(name,validator,isImg){
     return new Promise(function(resolve,reject){
-      let done=false;
-      sources.forEach(function(base,i){
-        /* 本地源立即发起；CDN 源稍延迟，避免本地快时浪费流量 */
-        setTimeout(function(){
-          if(done)return;
-          fetch(base).then(function(r){
+      let done=false, failed=0, lastErr=null;
+      BASES.forEach(function(base){
+        if(done)return;
+        if(isImg){
+          var im=new Image();
+          im.onload=function(){if(!done){done=true;resolve(base+name);}};
+          im.onerror=function(){failed++;lastErr=Error('img '+base);if(!done&&failed>=BASES.length)reject(lastErr);};
+          im.src=base+name;
+        }else{
+          fetch(base+name,{cache:'force-cache'}).then(function(r){
             if(!r.ok)throw new Error('HTTP '+r.status);
             return r.json();
           }).then(function(d){
+            if(!validator(d))throw new Error('bad payload');
             if(!done){done=true;resolve(d);}
-          }).catch(function(e){ if(!done && i===sources.length-1)reject(e); });
-        }, i*250);
+          }).catch(function(e){
+            failed++;lastErr=e;
+            if(!done&&failed>=BASES.length)reject(lastErr);
+          });
+        }
       });
     });
   };
-  Promise.all([raceJSON('phases.json'),raceJSON('wpol.json')]).then(function(arr){
-    const ph=arr[0], wp=arr[1];
+  const okPhases=function(d){return d&&Array.isArray(d)&&d.length>100;};
+  const okWpol=function(d){return d&&d.years&&d.years.length>10;};
+
+  const applyGeo=function(ph,wp){
     JS.phases=ph; JS.wpol=wp;
-    /* 底图：本地优先，CDN 备（图片失败不影响疆域，交给 onerror 兜底） */
-    JS.worldBase={src:LOCAL+'world.webp',fallback:CDN+'world.webp',w:8192,h:4096};
     PH=Object.fromEntries(ph.map(function(p){return [p.s,p];}));
     AXIS_Y0=Math.min.apply(null,ph.map(function(p){return p.f;}));
     AXIS_Y1=Math.max.apply(null,ph.map(function(p){return p.t;}));
     renderMap(); buildAxis(); calibrateView();
-    /* 底图 onerror 自动切 CDN：<image> 无 onerror 属性则手动探测一次 */
-    var img=new Image();
-    img.onerror=function(){ JS.worldBase.src=CDN+'world.webp'; renderMap(); };
-    img.src=LOCAL+'world.webp';
     if(state.journeyId){try{igniteJourney(JOURNEYS.find(function(j){return j.id===state.journeyId;}));}catch(e){}}
-    tip.classList.add('gone');
-    setTimeout(function(){try{tip.remove();}catch(e){}},450);
+  };
+  let geoReady=false, baseSrc=null;
+  const maybeFinish=function(){
+    if(geoReady&&baseSrc){tip.classList.add('gone');setTimeout(function(){try{tip.remove();}catch(e){}},450);}
+  };
+
+  /* 疆域数据 + 底图：并行独立加载 */
+  Promise.all([
+    race('phases.json',okPhases,false),
+    race('wpol.json',okWpol,false)
+  ]).then(function(arr){
+    applyGeo(arr[0],arr[1]);
+    geoReady=true;maybeFinish();
   }).catch(function(e){
-    tip.innerHTML='⚠ 地图数据加载失败：'+(e&&e.message?e.message:e)+'（知识内容仍可正常使用）';
+    setTip('⚠ 地图数据加载失败（网络原因）· <a href="javascript:void(0)" id="geoRetry" style="color:var(--cinnabar);text-decoration:underline">点击重试</a> · 知识内容不受影响');
+    var btn=document.getElementById('geoRetry');
+    if(btn)btn.onclick=function(){tip.remove();location.reload();};
     console.error('[geo]',e);
   });
+
+  race('world.webp',null,true).then(function(src){
+    JS.worldBase={src:src,w:8192,h:4096};
+    if(geoReady)renderMap();
+    baseSrc=src;maybeFinish();
+  }).catch(function(e){console.warn('[base]',e);});
 })();
 
 </script>
