@@ -2411,10 +2411,7 @@ init();
     renderMap(); buildAxis(); calibrateView();
     if(state.journeyId){try{igniteJourney(JOURNEYS.find(function(j){return j.id===state.journeyId;}));}catch(e){}}
   };
-  let geoReady=false, baseSrc=null;
-  const maybeFinish=function(){
-    if(geoReady&&baseSrc){tip.classList.add('gone');setTimeout(function(){try{tip.remove();}catch(e){}},450);}
-  };
+  const hideTip=function(){tip.classList.add('gone');setTimeout(function(){try{tip.remove();}catch(e){}},450);};
 
   /* 疆域数据 + 底图：并行独立加载 */
   Promise.all([
@@ -2422,7 +2419,7 @@ init();
     race('wpol.json',okWpol,false)
   ]).then(function(arr){
     applyGeo(arr[0],arr[1]);
-    geoReady=true;maybeFinish();
+    hideTip();   /* 疆域一到地图即可用，立即收起提示；底图后台补画不阻塞 */
   }).catch(function(e){
     setTip('⚠ 地图数据加载失败（网络原因）· <a href="javascript:void(0)" id="geoRetry" style="color:var(--cinnabar);text-decoration:underline">点击重试</a> · 知识内容不受影响');
     var btn=document.getElementById('geoRetry');
@@ -2432,8 +2429,7 @@ init();
 
   race('world.webp',null,true).then(function(src){
     JS.worldBase={src:src,w:8192,h:4096};
-    if(geoReady)renderMap();
-    baseSrc=src;maybeFinish();
+    if(JS.phases&&JS.phases.length)renderMap();   /* 底图后到：补画一次 */
   }).catch(function(e){console.warn('[base]',e);});
 })();
 
