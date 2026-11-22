@@ -2362,7 +2362,7 @@ init();
   const box=document.querySelector('.mapbox');
   if(!box)return;
   /* 固定 commit：data 文件在此提交后未再变动，用完整 SHA 锁定，绕开 @main 分支缓存同步延迟 */
-  const PIN='fcc3215eb169c8c1bb753fabd4feeb1a39244776';
+  const PIN='8bd0c91b7b';  /* 含 .gz 的 commit，jsDelivr 按 SHA 缓存稳定 */
   const BASES=['data/',
     'https://gcore.jsdelivr.net/gh/tansuanna1105/history-atlas@'+PIN+'/',
     'https://gcore.jsdelivr.net/gh/tansuanna1105/history-atlas@main/',
