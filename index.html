@@ -2374,29 +2374,52 @@ init();
   const spin='<span class="geo-spin"></span> ';
   setTip(spin+'疆域数据加载中…');
 
-  /* 通用多源竞速：validator 校验内容合法；任一源成功即 resolve，全部失败才 reject */
-  const race=function(name,validator,isImg){
+  /* gzip 解压（浏览器原生，省 72% 流量；不支持则回退原始 JSON） */
+  const supportsGz=(typeof DecompressionStream!=='undefined');
+  const gunzip=function(buf){
+    var ds=new DecompressionStream('gzip');
+    return new Response(buf.stream().pipeThrough(ds)).text();
+  };
+  /* 串行尝试各源：单源下载已占满窄带宽，多源并发只会互相瓜分、越抢越慢。
+     第一个成功即返回；失败/HTTP错误才切下一源。 */
+  const trySources=function(task){
     return new Promise(function(resolve,reject){
-      let done=false, failed=0, lastErr=null;
-      BASES.forEach(function(base){
-        if(done)return;
-        if(isImg){
+      var i=0, lastErr=null;
+      const next=function(){
+        if(i>=BASES.length){reject(lastErr||Error('all sources failed'));return;}
+        var base=BASES[i++];
+        task(base).then(resolve).catch(function(e){lastErr=e;console.warn('[geo] source fail',base,e);next();});
+      };
+      next();
+    });
+  };
+  /* 下载 JSON：优先 .gz（体积小 3~4 倍），逐源尝试 */
+  const race=function(name,validator,isImg){
+    if(isImg){
+      return trySources(function(base){
+        return new Promise(function(res,rej){
           var im=new Image();
-          im.onload=function(){if(!done){done=true;resolve(base+name);}};
-          im.onerror=function(){failed++;lastErr=Error('img '+base);if(!done&&failed>=BASES.length)reject(lastErr);};
+          im.onload=function(){res(base+name);};
+          im.onerror=function(){rej(Error('img '+base));};
           im.src=base+name;
-        }else{
-          fetch(base+name,{cache:'force-cache'}).then(function(r){
-            if(!r.ok)throw new Error('HTTP '+r.status);
-            return r.json();
-          }).then(function(d){
-            if(!validator(d))throw new Error('bad payload');
-            if(!done){done=true;resolve(d);}
-          }).catch(function(e){
-            failed++;lastErr=e;
-            if(!done&&failed>=BASES.length)reject(lastErr);
-          });
-        }
+        });
+      });
+    }
+    /* 每个源内部：先试 .gz，失败再试原始 .json */
+    return trySources(function(base){
+      const getJSON=function(url,asGz){
+        return fetch(url,{cache:'force-cache'}).then(function(r){
+          if(!r.ok)throw new Error('HTTP '+r.status);
+          if(asGz&&supportsGz)return gunzip(r.body).then(function(t){return JSON.parse(t);});
+          return r.json();
+        });
+      };
+      var chain=supportsGz
+        ? getJSON(base+name+'.gz',true).catch(function(){return getJSON(base+name,false);})
+        : getJSON(base+name,false);
+      return chain.then(function(d){
+        if(!validator(d))throw new Error('bad payload');
+        return d;
       });
     });
   };
