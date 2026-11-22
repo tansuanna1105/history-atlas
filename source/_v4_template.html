@@ -1,0 +1,1842 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>历史时空舆图 · 宣纸古风版</title>
+<style>
+:root{
+ --paper:#f4ecd8;--paper2:#ebe0c6;--paper3:#e2d4b4;--ink:#3b2d20;--ink2:#6b5a44;--dim:#9a8768;
+ --cinnabar:#9e2a2b;--cinnabar2:#b53826;--gold:#a67c1a;--jade:#3f7a6b;--azure:#3f6a8f;--violet:#6b5b8a;
+ --line:#c9b896;--shadow:0 8px 30px rgba(90,60,30,.16);
+}
+*{box-sizing:border-box}html{scroll-behavior:smooth}
+body{margin:0;color:var(--ink);font-family:"Kaiti SC","STKaiti","KaiTi","Songti SC","SimSun",serif;line-height:1.8;
+ padding:0 16px 70px;background-color:var(--paper);
+ background-image:radial-gradient(circle at 20% 10%,rgba(160,120,60,.06),transparent 45%),
+  radial-gradient(circle at 80% 60%,rgba(120,90,40,.05),transparent 50%),
+  repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(120,90,50,.012) 2px,rgba(120,90,50,.012) 4px);
+ background-attachment:fixed}
+.wrap{max-width:1400px;margin:0 auto}
+/* V14.9 首屏载入提示：22MB 单文件解析约 1.5s，给出反馈避免"白屏以为坏了" */
+.boot{position:fixed;inset:0;z-index:200;background:var(--paper);display:flex;align-items:center;justify-content:center;
+  transition:opacity .35s ease}
+.boot.out{opacity:0;pointer-events:none}
+.boot-in{text-align:center}
+.boot-seal{width:64px;height:64px;margin:0 auto 14px;line-height:64px;font-size:34px;font-weight:900;color:#f4ecd8;
+  background:var(--cinnabar);border-radius:6px;box-shadow:3px 3px 0 rgba(158,42,43,.22);
+  animation:bootPulse 1.2s ease-in-out infinite}
+.boot-t{font-size:16px;letter-spacing:3px;color:var(--cinnabar);font-weight:700}
+.boot-s{font-size:11.5px;color:var(--dim);letter-spacing:1px;margin-top:6px}
+/* V14.9 移动端章节导航条（桌面隐藏）：长页面一键跳转 */
+.secnav{display:none}
+@media(max-width:820px){
+  .secnav{display:flex;position:sticky;top:0;z-index:60;gap:6px;overflow-x:auto;
+    -webkit-overflow-scrolling:touch;padding:7px 10px;margin:0 -10px 12px;
+    background:rgba(250,244,228,.96);backdrop-filter:blur(6px);
+    border-bottom:1px solid rgba(201,184,150,.7);scrollbar-width:none}
+  .secnav::-webkit-scrollbar{display:none;height:0}
+  .secnav a{flex:0 0 auto;padding:7px 12px;border-radius:14px;font-size:12px;color:var(--ink2);
+    background:rgba(255,253,247,.9);border:1px solid var(--line);text-decoration:none;white-space:nowrap}
+  .secnav a.on{background:var(--cinnabar);color:#f4ecd8;border-color:var(--cinnabar)}
+}
+@keyframes bootPulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(.94);opacity:.82}}
+@media(prefers-reduced-motion:reduce){.boot-seal{animation:none}}
+header{text-align:center;margin:0 -16px 22px;padding:32px 20px 24px;position:relative;
+ background:linear-gradient(180deg,rgba(158,42,43,.06),transparent 80%);border-bottom:2px solid var(--cinnabar)}
+header::after{content:"❖";position:absolute;left:50%;bottom:-13px;transform:translateX(-50%);color:var(--cinnabar);font-size:16px;background:var(--paper);padding:0 10px}
+h1{font-size:34px;margin:0 0 8px;letter-spacing:6px;font-weight:900;color:var(--cinnabar);
+ text-shadow:1px 1px 0 rgba(255,255,255,.5)}
+.sub{color:var(--ink2);font-size:14px;letter-spacing:2px}
+.seal{display:inline-block;margin-top:10px;font-size:11px;color:var(--paper);background:var(--cinnabar);
+ border-radius:3px;padding:4px 12px;letter-spacing:1px;box-shadow:2px 2px 0 rgba(158,42,43,.25)}
+section{background:linear-gradient(160deg,rgba(255,252,244,.85),rgba(240,231,210,.8));border:1px solid var(--line);
+ border-radius:6px;padding:18px 22px;margin-bottom:20px;box-shadow:var(--shadow);position:relative}
+section::before{content:"";position:absolute;top:5px;left:5px;right:5px;bottom:5px;border:1px solid rgba(201,184,150,.4);pointer-events:none;border-radius:3px}
+h2{font-size:20px;margin:0 0 13px;padding-left:14px;position:relative;font-weight:800;color:var(--cinnabar);letter-spacing:1px}
+h2::before{content:"";position:absolute;left:0;top:5px;bottom:5px;width:4px;background:var(--cinnabar)}
+h2 .badge{font-size:11px;color:var(--ink2);border:1px solid var(--line);border-radius:3px;padding:1px 8px;margin-left:9px;vertical-align:middle;font-weight:400;letter-spacing:0}
+.muted{color:var(--ink2);font-size:12.5px;margin:0 0 11px}
+.toolbar{display:flex;gap:9px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+.search{flex:1;min-width:220px;position:relative}
+.search input{width:100%;padding:9px 14px 9px 34px;border-radius:4px;border:1px solid var(--line);
+ background:rgba(255,253,247,.9);color:var(--ink);font-size:13.5px;outline:none;font-family:inherit}
+.search input:focus{border-color:var(--cinnabar);box-shadow:0 0 0 2px rgba(158,42,43,.1)}
+.search::before{content:"⌕";position:absolute;left:11px;top:50%;transform:translateY(-52%);color:var(--dim);font-size:17px}
+.tbtn{background:rgba(255,253,247,.9);color:var(--ink2);border:1px solid var(--line);border-radius:4px;padding:8px 13px;cursor:pointer;font-size:12.5px;transition:.18s;font-family:inherit}
+.tbtn:hover{border-color:var(--cinnabar);color:var(--cinnabar)}
+.results{margin-top:9px;max-height:290px;overflow:auto;display:none;background:rgba(255,253,247,.95);border:1px solid var(--line);border-radius:4px}
+.results.show{display:block}
+.ritem{padding:8px 12px;border-bottom:1px dashed var(--line);cursor:pointer;font-size:13px;display:flex;gap:10px;align-items:center}
+.ritem:hover{background:rgba(158,42,43,.06)}
+.ritem .tag{font-size:10.5px;color:var(--cinnabar);border:1px solid rgba(158,42,43,.4);border-radius:3px;padding:1px 6px;flex:0 0 auto}
+.ritem .txt{color:var(--ink2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* 朝代时间轴 */
+.dynastybar{display:flex;align-items:center;gap:6px;background:rgba(255,253,247,.7);border:1px solid var(--line);border-radius:4px;padding:9px 11px;margin-bottom:8px;flex-wrap:wrap}
+.ibtn{background:var(--paper2);color:var(--ink);border:1px solid var(--line);border-radius:4px;min-width:32px;height:30px;cursor:pointer;font-size:13px;font-family:inherit;transition:.18s}
+.ibtn:hover{border-color:var(--cinnabar);color:var(--cinnabar)}
+.ibtn.play{color:var(--cinnabar);border-color:var(--cinnabar);font-weight:700;padding:0 11px}
+.dynasties{display:flex;gap:4px;flex-wrap:wrap;flex:1}
+.dchip{font-size:11.5px;padding:5px 9px;border-radius:3px;border:1px solid var(--line);background:rgba(255,253,247,.7);color:var(--ink2);cursor:pointer;transition:.16s;font-family:inherit}
+.dchip:hover{border-color:var(--cinnabar);transform:translateY(-1px)}
+.dchip.on{background:var(--cinnabar);border-color:var(--cinnabar);color:var(--paper);font-weight:800}
+.yearbar{display:flex;justify-content:space-between;font-size:11px;color:var(--dim);margin-bottom:10px;padding:0 4px}
+.yearbar b{color:var(--cinnabar);font-size:13px}
+/* 舆图 */
+.layout{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:13px}
+@media(max-width:1050px){.layout{grid-template-columns:1fr}}
+.mapbox{position:relative;border:2px solid var(--line);border-radius:4px;overflow:hidden;background:var(--paper);
+ box-shadow:inset 0 0 40px rgba(140,100,50,.08),0 10px 30px rgba(43,38,34,.14),0 1px 2px rgba(43,38,34,.08)}
+.mapbox svg{display:block;width:100%;height:auto;touch-action:none;will-change:transform}
+.mapctrl{position:absolute;left:9px;top:9px;z-index:10;display:flex;gap:4px;flex-wrap:wrap;max-width:80%}
+.mapctrl button{background:rgba(250,244,228,.94);color:var(--ink2);border:1px solid var(--line);border-radius:3px;font-size:10.5px;padding:4px 8px;cursor:pointer;font-family:inherit}
+.mapctrl button.on{color:var(--cinnabar);border-color:var(--cinnabar);font-weight:700}
+.mapnote{position:absolute;right:9px;bottom:9px;z-index:10;background:rgba(250,244,228,.9);border:1px solid var(--line);color:var(--ink2);border-radius:3px;padding:4px 9px;font-size:10px}
+/* 地图提示双文案：桌面显示 dn（含滚轮），手机显示 dm（触屏） */
+.mapnote .dm{display:none}
+.region-path{transition:fill-opacity .2s;cursor:pointer}
+.region-path:hover{fill-opacity:.55}
+/* V14.4 地图字体统一：所有地图内标注（含 wshape-label）统一宋体系字体族，
+   消除"君士坦丁堡=宋体、其他=楷体"的混排。 */
+.region-label,.polity-label,.nb-label,.landmark,.site-label,.wa-label,.cor-label,.wshape-label{font-family:'Songti SC','SimSun',serif}
+.region-label{font-weight:700;text-anchor:middle;paint-order:stroke;stroke:var(--paper);stroke-width:3px;pointer-events:none;fill:var(--ink)}
+.polity-label{font-weight:800;text-anchor:middle;pointer-events:none;fill:var(--ink);letter-spacing:.18em}
+.nb-label{text-anchor:middle;pointer-events:none;fill:var(--ink2);opacity:.9}
+.site-dot{cursor:pointer;transition:r .2s}
+.site-dot.active{stroke:#fff;stroke-width:2.2}
+.site-dot.active .cap-core{stroke:#fff;stroke-width:1.6}
+.cap-core{transition:transform .2s;transform-box:fill-box;transform-origin:center}
+.cap-breath{animation:capBreath 2.8s ease-in-out infinite;transform-box:fill-box;transform-origin:center}
+@keyframes capBreath{0%,100%{opacity:.15}50%{opacity:.6}}
+/* 城池/政权/锚点标签：白色柔化底板（blur 云朵），弃用贴字形的描边晕（尖刺白斑）；
+   城名底板整体可点（site-tag g 内），借江山时序"点城名=打开沿革" */
+.site-label{fill:var(--ink2)}
+.site-tag:hover .site-label{fill:var(--cinnabar)}
+.ms-pin{cursor:pointer}
+.ms-pin polygon{transition:transform .2s;transform-box:fill-box;transform-origin:center}
+.ms-pin:hover polygon{transform:scale(1.35)}
+.scalebar{position:absolute;right:9px;bottom:36px;z-index:10;text-align:center;pointer-events:none}
+.scalebar .sb-line{height:5px;border-left:1px solid var(--ink2);border-right:1px solid var(--ink2);border-bottom:1.5px solid var(--ink2);width:110px;margin:0 auto}
+.scalebar .sb-txt{font-size:9.5px;color:var(--ink2);margin-top:2px;letter-spacing:.5px}
+.site-card{position:absolute;top:42px;right:9px;z-index:12;width:282px;max-height:64%;overflow:auto;background:rgba(255,252,244,.97);border:1px solid var(--line);border-left:3px solid var(--cinnabar);border-radius:4px;box-shadow:0 8px 22px rgba(90,60,30,.22);padding:12px 14px;display:none}
+.site-card.show{display:block}
+.site-card h4{margin:0 0 5px;font-size:17px;color:var(--cinnabar)}
+.site-card .where{color:var(--ink2);font-size:11.5px;margin-bottom:8px;padding-bottom:6px;border-bottom:1px dashed var(--line)}
+.site-card .pev{display:grid;grid-template-columns:64px 1fr;gap:4px 10px;font-size:12px;padding:4px 0;border-bottom:1px dashed rgba(201,184,150,.5)}
+.site-card .pev .y{font-weight:800;color:var(--cinnabar)}
+.site-card .hint{font-size:10.5px;color:var(--dim);margin-top:7px;font-style:italic}
+.site-card .sclose{position:absolute;top:5px;right:9px;cursor:pointer;color:var(--dim);font-size:13px}
+.site-card .sclose:hover{color:var(--cinnabar)}
+.site-card .goto{color:var(--cinnabar);cursor:pointer}
+.timeslider{margin:6px 2px 10px}
+.timeslider input{width:100%;accent-color:var(--cinnabar);cursor:pointer;height:16px}
+/* 江山时序式可拖动时间轴：朝代分段带 + 相位刻度 + 游标，拖动时疆域随相位连续变形 */
+#timeaxis{height:46px;margin:6px 2px 10px;position:relative;border:1px solid var(--line);border-radius:4px;
+ background:linear-gradient(180deg,rgba(255,253,247,.9),rgba(243,236,218,.9));overflow:hidden;cursor:ew-resize;touch-action:none;user-select:none}
+#timeaxis svg{display:block}
+#timeaxis text{pointer-events:none}
+/* 教材引文点击 → 相关事件弹窗 */
+.kquote{cursor:pointer;color:var(--cinnabar);border-bottom:1px dashed rgba(158,42,43,.5)}
+.kquote:hover{background:rgba(158,42,43,.08)}
+#quotePop{position:fixed;z-index:130;width:340px;max-height:360px;overflow:auto;display:none;
+ background:rgba(255,252,244,.98);border:1px solid var(--line);border-left:3px solid var(--cinnabar);border-radius:4px;
+ box-shadow:0 10px 26px rgba(90,60,30,.28);padding:12px 14px;font-size:12.5px}
+#quotePop h5{margin:0 0 6px;color:var(--cinnabar);font-size:13.5px}
+#quotePop .qe{border-bottom:1px dashed rgba(201,184,150,.5);padding:6px 0}
+#quotePop .qe b{color:var(--cinnabar)}
+#quotePop .qe .qd{color:var(--ink2)}
+/* 世界政区层 */
+.wshape{transition:fill-opacity .2s;cursor:pointer}
+.wshape:hover{fill-opacity:.78;stroke:rgba(59,45,32,.9)}
+.wshape-label{font-weight:700;fill:var(--ink);opacity:.95;paint-order:stroke;stroke:var(--paper);stroke-width:2.2px;stroke-linejoin:round;pointer-events:none}
+.totop{position:fixed;right:18px;bottom:78px;z-index:50;display:none;background:rgba(158,42,43,.92);color:#f4ecd8;border:none;border-radius:20px;padding:8px 14px;cursor:pointer;font-family:inherit;font-size:12px;letter-spacing:1px;box-shadow:0 4px 14px rgba(90,60,30,.3)}
+.totop:hover{background:var(--cinnabar)}
+.xlink{display:inline-block;padding:3px 10px;margin:2px;border:1px solid var(--jade);border-radius:3px;color:var(--jade);cursor:pointer;background:rgba(63,122,107,.08);font-size:12px}
+.xlink:hover{background:rgba(63,122,107,.2);transform:translateY(-1px)}
+@keyframes ants{to{stroke-dashoffset:-60}}
+.wroute.flow{animation:ants 1.15s linear infinite}
+.cor-flow{animation:ants 1.3s linear infinite}
+.river-path{fill:none;stroke:var(--azure);opacity:.55}
+.lake-poly{fill:#5f87ab;fill-opacity:.3;stroke:#48708f;pointer-events:none}
+.landmark{fill:var(--ink2);opacity:.75;paint-order:stroke;stroke:var(--paper);stroke-width:2px;pointer-events:none}
+.cor-label{font-weight:700;paint-order:stroke;stroke:var(--paper);stroke-width:2.5px;pointer-events:none;opacity:.9}
+.mapbox::before{content:"";position:absolute;inset:5px;border:1px solid rgba(122,104,80,.3);border-radius:3px;pointer-events:none;z-index:6}
+.wa-dot{cursor:pointer}.wa-dot .cap-core{transition:transform .2s;transform-box:fill-box;transform-origin:center}
+/* V14.1 修复：勿在此设 font-size！CSS 固定值会覆盖内联 font-size="fz(10)"，
+   经 scale(zoom) 放大后字号=10*zoom（zoom=6→60px），即放大后"君士坦丁堡"巨字。
+   字号交给内联 fz()（w/zoom）保持屏幕恒定。 */
+.wa-label{fill:var(--ink);pointer-events:none}
+.wroute{fill:none;stroke-dasharray:6 5;opacity:.75;pointer-events:none}
+.info{background:rgba(255,253,247,.85);border:1px solid var(--line);border-radius:4px;padding:14px;display:flex;flex-direction:column;gap:7px;max-height:600px;overflow:auto}
+.info .yr{font-size:11px;color:var(--cinnabar);font-weight:700;letter-spacing:1px}
+.info h3{margin:0;font-size:17px;padding-bottom:7px;border-bottom:1px solid var(--line);color:var(--cinnabar)}
+.info p{font-size:12.5px;margin:0;color:var(--ink2);text-align:justify}
+.ev{font-size:11.8px;color:var(--ink2);padding:3px 0 3px 11px;position:relative}
+.ev::before{content:"";position:absolute;left:0;top:10px;width:5px;height:5px;border-radius:50%;background:var(--cinnabar)}
+.info .legend{margin-top:6px;padding-top:8px;border-top:1px dashed var(--line);font-size:11px;color:var(--ink2);line-height:2}
+.lgi{cursor:pointer;padding:2px 5px;border-radius:3px}.lgi:hover{background:rgba(158,42,43,.1)}
+.swatch{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:middle;border:1px solid rgba(0,0,0,.15)}
+/* V14 中外对照栏 */
+.cmp{background:rgba(158,42,43,.05);border:1px solid rgba(158,42,43,.28);border-radius:4px;padding:8px 10px;margin:2px 0 4px}
+.cmp-row{display:flex;gap:8px;align-items:baseline;font-size:12px;line-height:1.7}
+.cmp-row .k{color:var(--cinnabar);font-weight:700;flex:0 0 62px}
+.cmp-row .v{color:var(--ink);flex:1}
+.cmp-tag{display:inline-block;padding:1px 7px;margin:2px 4px 2px 0;border:1px solid var(--line);border-radius:3px;font-size:11px;background:rgba(255,255,255,.5)}
+.cmp-tag i{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:4px;vertical-align:middle}
+.ev.near{color:var(--cinnabar);font-weight:700}
+.ev .gap{color:var(--dim);font-size:10.5px}
+/* V14.9 世界政权简介卡 */
+.pc-era{font-size:11px;color:var(--cinnabar);letter-spacing:.5px;margin:-2px 0 7px;font-weight:700}
+.pc-d{margin:0 0 8px;font-size:12.5px;line-height:1.75;color:var(--ink2);text-align:justify}
+.pc-cn{font-size:12px;line-height:1.7;color:var(--ink2);background:rgba(63,122,107,.08);
+  border-left:2px solid var(--jade);padding:7px 9px;border-radius:0 3px 3px 0;text-align:justify}
+.pc-cn b{color:var(--jade)}
+/* V14.7 世界史专题板块 */
+.wt-era{margin:16px 0 6px;font-size:13px;color:var(--cinnabar);font-weight:800;letter-spacing:1px;
+  padding-bottom:5px;border-bottom:2px solid rgba(158,42,43,.28)}
+.wt-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:12px}
+.wt-card{background:rgba(255,253,247,.9);border:1px solid var(--line);border-left:3px solid var(--cinnabar);
+  border-radius:4px;padding:12px 14px;cursor:pointer;transition:.18s}
+.wt-card:hover{box-shadow:0 4px 14px rgba(90,60,30,.13);transform:translateY(-1px)}
+.wt-card h4{margin:0 0 4px;font-size:15px;color:var(--ink)}
+.wt-card .meta{font-size:10.5px;color:var(--dim);margin-bottom:7px;letter-spacing:.3px}
+.wt-card .meta b{color:var(--jade);font-weight:700}
+.wt-card ul{margin:0 0 7px;padding-left:16px}
+.wt-card li{font-size:12px;color:var(--ink2);line-height:1.65;margin-bottom:3px;text-align:justify}
+.wt-card .cc{font-size:10.5px;color:var(--cinnabar);border:1px dashed rgba(158,42,43,.35);
+  border-radius:3px;padding:2px 7px;margin:2px 4px 2px 0;display:inline-block;background:rgba(158,42,43,.04)}
+.wt-card .cnlink{font-size:11.5px;color:var(--ink2);background:rgba(63,122,107,.07);
+  border-left:2px solid var(--jade);padding:5px 8px;margin-top:6px;border-radius:0 3px 3px 0;line-height:1.6;text-align:justify}
+.wt-card .cnlink b{color:var(--jade)}
+.wt-toggle{font-size:11.5px;color:var(--jade);cursor:pointer;user-select:none;margin-top:4px}
+.wt-hidden{display:none}
+/* 城池档案 */
+#detail{background:rgba(255,253,247,.8);border:1px solid var(--line);border-radius:4px;padding:15px 19px;min-height:85px}
+#detail h3{margin:0 0 6px;font-size:19px;color:var(--cinnabar)}
+.where{color:var(--ink2);font-size:12px;margin-bottom:10px;padding-bottom:7px;border-bottom:1px dashed var(--line)}
+.pev{display:grid;grid-template-columns:96px 1fr;gap:6px 12px;font-size:12.5px;padding:5px 0;border-bottom:1px dashed var(--line)}
+.pev:last-child{border-bottom:none}.pev .y{font-weight:800;color:var(--cinnabar)}
+.flash{animation:fl 1.1s ease}@keyframes fl{0%{box-shadow:0 0 0 3px var(--cinnabar)}100%{box-shadow:none}}
+.hint{font-size:11px;color:var(--dim);margin-top:8px;font-style:italic}
+/* 知识点 */
+.filters{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.fbtn{font-size:11.5px;padding:5px 11px;border-radius:3px;border:1px solid var(--line);background:rgba(255,253,247,.8);color:var(--ink2);cursor:pointer;transition:.18s;font-family:inherit}
+.fbtn.on{background:var(--cinnabar);border-color:var(--cinnabar);color:var(--paper);font-weight:800}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px}
+.kc{background:rgba(255,253,247,.85);border:1px solid var(--line);border-left:3px solid var(--cinnabar);border-radius:4px;padding:14px 16px;transition:.2s;position:relative}
+.kc:hover{transform:translateY(-3px);box-shadow:0 6px 18px rgba(90,60,30,.12)}
+.kc.gold{border-left-color:var(--gold)}.kc.blue{border-left-color:var(--azure)}.kc.purple{border-left-color:var(--violet)}
+.kc.green{border-left-color:var(--jade)}.kc.cyan{border-left-color:#4a8a86}.kc.yellow{border-left-color:var(--gold)}
+.kc h3{margin:0 0 8px;font-size:14px;padding-right:64px;color:var(--ink)}
+.kc ul{margin:5px 0 0;padding-left:17px}.kc li{font-size:12.3px;margin:5px 0;color:var(--ink2)}
+.kc li b{color:var(--cinnabar)}
+.kc.done{opacity:.6}
+.kact{position:absolute;right:10px;top:11px;display:flex;gap:4px}
+.kact button{background:none;border:1px solid var(--line);color:var(--dim);border-radius:3px;cursor:pointer;font-size:11px;padding:2px 6px;font-family:inherit}
+.kact button.on{color:var(--cinnabar);border-color:var(--cinnabar)}
+.ktag{font-size:10.5px;color:var(--dim);margin-top:8px;border-top:1px dashed var(--line);padding-top:6px}
+/* 测验 */
+.quizhead{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:11px}
+.score{font-weight:800;color:var(--cinnabar)}
+.qitem{border:1px solid var(--line);border-radius:4px;padding:13px 15px;margin:9px 0;background:rgba(255,253,247,.8)}
+.qitem .qt{font-weight:700;font-size:13.5px;margin-bottom:8px}
+.opts{display:flex;flex-direction:column;gap:5px}
+.opt{border:1px solid var(--line);border-radius:3px;padding:6px 10px;cursor:pointer;font-size:12.5px;transition:.15s;background:rgba(255,253,247,.6)}
+.opt:hover{border-color:var(--cinnabar);transform:translateX(2px)}
+.opt.right{border-color:var(--jade);background:rgba(63,122,107,.12);color:var(--jade)}
+.opt.wrong{border-color:var(--cinnabar);background:rgba(158,42,43,.1);color:var(--cinnabar)}
+.qexp{display:none;font-size:12px;color:var(--ink2);margin-top:8px;padding-top:7px;border-top:1px dashed var(--line)}
+.qexp.show{display:block}.qexp b{color:var(--cinnabar)}
+.err{background:rgba(158,42,43,.04);border:1px solid rgba(158,42,43,.25);border-left:3px solid var(--cinnabar);border-radius:4px;padding:9px 13px;margin:7px 0;cursor:pointer}
+.err .q{color:var(--cinnabar);font-weight:700;font-size:13px}
+.err .a{font-size:12.3px;color:var(--ink2);margin-top:6px;display:none;padding-top:6px;border-top:1px dashed var(--line)}
+.err.open .a{display:block}
+/* 寻址 */
+.quizbox{background:linear-gradient(135deg,rgba(158,42,43,.05),rgba(166,124,26,.05));border:1px solid var(--line);border-radius:4px;padding:15px}
+.qtitle{color:var(--cinnabar);font-weight:800;font-size:14px;margin-bottom:7px}
+.qclue{font-size:13px;color:var(--ink);margin:8px 0 12px;padding:10px 13px;background:rgba(255,253,247,.85);border-radius:3px;border-left:3px solid var(--cinnabar)}
+.qopts{display:flex;gap:8px;flex-wrap:wrap}
+.qopt{padding:7px 14px;border-radius:3px;border:1px solid var(--line);background:rgba(255,253,247,.9);color:var(--ink2);cursor:pointer;font-size:12.5px;transition:.18s;font-family:inherit}
+.qopt:hover{border-color:var(--cinnabar);color:var(--cinnabar)}
+.qopt.right{border-color:var(--jade);color:var(--jade);background:rgba(63,122,107,.12)}
+.qopt.wrong{border-color:var(--cinnabar);color:var(--cinnabar);background:rgba(158,42,43,.1)}
+footer{text-align:center;color:var(--dim);font-size:10.5px;margin-top:18px;padding-top:13px;border-top:1px solid var(--line)}
+.hk{font-size:10.5px;color:var(--dim);margin-top:7px}
+kbd{background:var(--paper2);border:1px solid var(--line);border-radius:3px;padding:1px 5px;font-size:10px;font-family:inherit}
+@media print{.toolbar,.mapctrl{display:none!important}section{break-inside:avoid}}
+#map{cursor:grab;user-select:none;-webkit-user-select:none}
+#map:active{cursor:grabbing}
+/* ===== V14.8 移动端适配（竖屏优先）=====
+   要点：触摸目标≥40px、朝代条/图层按钮横向滚动省空间、专题卡单列、
+   正文字号提升、消除横向溢出。地图缩放逻辑（svgK）依赖容器 clientWidth，此处不改 SVG 尺寸避免错位。 */
+@media(max-width:820px){
+  body{padding:0 10px 76px;font-size:14px}
+  .wrap{max-width:100%}
+  /* header 原用 margin:0 -16px，配合 body 10px padding 会横向溢出 12px；此处对齐为 -10px */
+  header{margin:0 -10px 18px;padding:26px 12px 20px}
+  /* section 内边距收窄，把宽度让给地图（原 22px → 12px，地图宽 +20px） */
+  section{padding:14px 12px;margin-bottom:14px;border-radius:5px}
+  h1{font-size:26px;letter-spacing:2px}
+  .sub{font-size:11.5px;letter-spacing:1px;line-height:1.7}
+  .seal{font-size:10px}
+  h2{font-size:17.5px;padding-left:11px}
+  /* 工具栏：大触摸目标，按钮换行更宽松 */
+  .toolbar{gap:7px;margin-bottom:11px}
+  .search{flex:1 1 100%}
+  .search input{font-size:14px;padding:11px 12px;min-height:44px}
+  .search::before{font-size:16px}
+  .tbtn{padding:10px 13px;font-size:12.5px;min-height:42px;border-radius:5px}
+  /* 朝代切换：单行横向滚动，避免挤成多行 */
+  .dynastybar{flex-wrap:nowrap;gap:5px}
+  .ibtn{min-width:42px;min-height:42px;font-size:14px;border-radius:5px}
+  .ibtn.play{min-width:72px;font-size:12.5px}
+  .dynasties{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;
+    padding:2px 1px 6px;scrollbar-width:none;gap:5px}
+  .dynasties::-webkit-scrollbar{display:none;height:0}
+  .dchip{flex:0 0 auto;padding:8px 11px;font-size:12.5px;min-height:36px;white-space:nowrap}
+  /* 年份条 */
+  .yearbar{font-size:10.5px;margin-bottom:8px}
+  .yearbar b{font-size:12.5px}
+  /* 时间轴加高，便于手指拖动 */
+  #timeaxis{height:56px}
+  /* 图层按钮：单行横向滚动 */
+  .mapctrl{left:6px;top:6px;gap:5px;flex-wrap:nowrap;overflow-x:auto;
+    max-width:calc(100% - 12px);padding:5px 5px 6px;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+  .mapctrl::-webkit-scrollbar{display:none;height:0}
+  .mapctrl button{flex:0 0 auto;padding:7px 10px;font-size:11.5px;min-height:34px}
+  .mapnote{font-size:9px;padding:3px 7px;right:6px;bottom:6px;max-width:64%;line-height:1.5}
+  .scalebar{left:8px;bottom:8px}
+  .scalebar .sb-txt{font-size:8.5px}
+  /* 布局单列 */
+  .layout{grid-template-columns:1fr;gap:10px}
+  /* 说明栏：不限高、字号提升、行距舒适 */
+  .info{max-height:none;padding:12px;gap:8px}
+  .info .yr{font-size:10.5px;letter-spacing:.5px}
+  .info h3{font-size:16px}
+  .info p{font-size:13px;line-height:1.85}
+  .info .legend{font-size:11.5px;line-height:1.95;margin-top:7px;padding-top:8px}
+  .ev{font-size:12px;padding:4px 0 4px 10px}
+  .ev .gap{font-size:10px}
+  .cmp{padding:8px 9px}
+  .cmp-row{font-size:12.5px;gap:6px;line-height:1.8}
+  .cmp-row .k{flex:0 0 54px}
+  .cmp-tag{font-size:10.5px;padding:1px 6px}
+  .lgi{padding:3px 6px}
+  /* 世界史专题：单列 */
+  .wt-grid{grid-template-columns:1fr;gap:10px}
+  .wt-card{padding:11px 12px}
+  .wt-card h4{font-size:14.5px}
+  .wt-card li{font-size:12.5px;line-height:1.7}
+  .wt-card .cc{font-size:10px}
+  .wt-card .cnlink{font-size:12px}
+  .wt-toggle{font-size:12px;padding:4px 0}
+  .wt-era{font-size:12.5px;margin:14px 0 5px}
+  /* 知识库卡片 */
+  .kc{padding:12px 13px}
+  .kc h3{font-size:13.5px;padding-right:0}
+  .kc li{font-size:12.5px;line-height:1.7}
+  /* 自测/引文选项：大触摸目标 */
+  .opt,.qopt{padding:11px 12px;font-size:13px;min-height:42px}
+  .qitem{padding:11px 0}
+  .qt{font-size:13px;line-height:1.7}
+  .qexp{font-size:12px}
+  /* 筛选按钮（知识库/引文分类） */
+  .fbtn{padding:8px 11px;font-size:12px;min-height:36px}
+  .filters{gap:6px}
+  /* 易错辨析 */
+  .err{padding:11px 12px}
+  .err .q{font-size:13px}
+  .err .a{font-size:12.5px}
+  /* 沿着/卡片弹窗：适配窄屏 */
+  .site-card{width:calc(100% - 24px);left:12px;max-height:62vh;font-size:13px}
+  #quotePop{width:calc(100% - 24px);max-width:340px}
+  /* 搜索结果面板 */
+  .results{max-height:56vh}
+  .ritem{font-size:13px;padding:11px 12px;min-height:44px}
+  /* 顶部悬浮按钮：手机改为小圆形箭头，减少对内容的遮挡 */
+  .totop{right:12px;bottom:16px;width:48px;height:48px;padding:0;border-radius:50%;
+    font-size:0;letter-spacing:0;opacity:.9}
+  .totop::before{content:"↑";font-size:20px;line-height:1}
+  /* 地图提示：手机显示触屏文案 */
+  .mapnote .dn{display:none}
+  .mapnote .dm{display:inline}
+  /* 快捷键提示（移动端无键盘，隐藏） */
+  .hk{display:none}
+  /* 页脚 */
+  footer{font-size:10.5px;line-height:1.7}
+  /* 长文本防溢出 */
+  .info p,.kc li,.wt-card li,.err .a{word-break:break-word;overflow-wrap:anywhere}
+}
+/* 超窄屏（iPhone SE 等 ≤380px） */
+@media(max-width:380px){
+  h1{font-size:22px;letter-spacing:1.5px}
+  .tbtn{padding:9px 10px;font-size:11.5px}
+  .ibtn{min-width:38px;min-height:38px}
+  .dchip{padding:7px 9px;font-size:11.5px}
+  .mapctrl button{padding:6px 8px;font-size:10.5px}
+  .info p{font-size:12.5px}
+  .wt-card h4{font-size:14px}
+}
+/* 横屏手机：压缩页头让地图可见 */
+@media(max-width:900px) and (orientation:landscape) and (max-height:520px){
+  header{margin:0 -10px 10px;padding:10px 12px 8px}
+  header::after{display:none}
+  h1{font-size:19px;letter-spacing:2px;margin:0}
+  .sub,.seal{display:none}
+  section{padding:10px 12px;margin-bottom:10px}
+  h2{font-size:15px;margin-bottom:7px}
+  .muted{display:none}
+  .mapnote,.scalebar{display:none}
+  .info{max-height:none}
+  /* 横屏触摸目标同样加大 */
+  .tbtn,.ibtn{padding:9px 12px;min-height:40px;font-size:12px}
+  .ibtn.play{min-width:66px}
+  .dchip{padding:7px 10px;min-height:34px;font-size:12px}
+  .mapctrl button{padding:6px 9px;min-height:32px;font-size:11px}
+  .fbtn{padding:7px 10px;min-height:34px;font-size:11.5px}
+  .opt,.qopt{padding:9px 11px;min-height:38px;font-size:12.5px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div id="boot" class="boot"><div class="boot-in"><div class="boot-seal">舆</div><div class="boot-t">载入舆图中…</div><div class="boot-s">正在解析疆域与地形数据</div></div></div>
+<header>
+  <h1>历史时空舆图</h1>
+  <div class="sub">宣纸古风 · 中外一图 · 朝代驱动 · 五十专题 · 引文填空 · 寻地挑战</div>
+  <div class="seal">疆域数据据《中国历史地图集》· 示意非精确边界</div>
+</header>
+
+<div class="toolbar">
+  <div class="search"><input id="search" type="search" placeholder="搜索：朝代 / 城池 / 大事 / 引文 / 知识点（按 / 聚焦，Esc 清空）" autocomplete="off"></div>
+  <button class="tbtn" id="zoomIn">＋ 放大</button>
+  <button class="tbtn" id="zoomOut">－ 缩小</button>
+  <button class="tbtn" id="resetView">复位·中国</button>
+  <button class="tbtn" id="globeView">🌐 全球</button>
+</div>
+<div class="results" id="results"></div>
+<nav class="secnav" id="secNav" aria-label="章节导航"></nav>
+
+<section>
+  <h2>一、中外时空舆图 <span class="badge">拖动时间 · 缩放看同期世界</span></h2>
+  <p class="muted">真实历史疆域数据（据谭其骧《中国历史地图集》与 CHGIS），覆盖战国至民国十七朝。切换朝代时上一朝疆域以朱砂虚线保留，进退一目了然。点击城池查沿革。</p>
+  <div class="dynastybar">
+    <button class="ibtn" id="prev" title="上一朝（←）">◀</button>
+    <button class="ibtn play" id="play" title="播放（空格）">▶ 演绎</button>
+    <button class="ibtn" id="speed" title="切换演绎速度">2.2s</button>
+    <div class="dynasties" id="dynasties"></div>
+    <button class="ibtn" id="next" title="下一朝（→）">▶</button>
+  </div>
+  <div id="timeaxis" title="拖动游标：疆域随年代连续变化"></div>
+  <div class="yearbar"><span id="yearFromText">—</span><span id="dynastyTitle">—</span><span id="yearToText">—</span></div>
+  <div class="layout">
+    <div class="mapbox">
+      <div class="mapctrl">
+        <button data-layer="base" class="on">底图</button>
+        <button data-layer="wshapes" class="on">世界政区</button>
+        <button data-layer="regions" class="on">疆域</button>
+        <button data-layer="polities" class="on">周边</button>
+        <button data-layer="water" class="on">水系</button>
+        <button data-layer="ghost" class="on">残影</button>
+        <button data-layer="sites" class="on">城池</button>
+        <button data-layer="events" class="on">大事</button>
+        <button data-layer="landmarks" class="on">山河</button>
+        <button data-layer="corridors" class="on">通道</button>
+        <button data-layer="world" class="on">世界</button>
+      </div>
+      <div id="map"></div>
+      <div id="siteCard" class="site-card"></div>
+      <div id="scalebar" class="scalebar"><div class="sb-line"></div><div class="sb-txt">—</div></div>
+      <div class="mapnote"><span class="dn">拖拽平移 · 滚轮/双指缩放 · 点城池/大事图钉 · 通道随朝代显隐</span><span class="dm">拖拽平移 · 双指缩放 · 点城池查沿革</span></div>
+    </div>
+    <aside class="info" id="eraInfo"></aside>
+  </div>
+</section>
+
+<section>
+  <h2>二、城池沿革 <span class="badge">点舆图城池查看</span></h2>
+  <p class="muted">点击舆图上的城池，查看它在历代的名称与建置变迁——一座长安，半部中国史。</p>
+  <div id="detail"><div style="color:var(--dim);font-size:13px">← 点击舆图上的城池圆点开始探索。</div></div>
+</section>
+
+<section>
+  <h2>三、世界史专题 <span class="badge">纲要下 · 九大单元 · 中外对照</span></h2>
+  <p class="muted">按《中外历史纲要（下）》单元体系整理的世界史脉络：从古代文明多元起源到当代世界发展趋势，每专题含核心要点、关键概念与"与中国的关联"。点击卡片可跳到对应时代的地图。</p>
+  <div id="worldTopics"></div>
+</section>
+
+<section>
+  <h2>四、专题知识库 <span class="badge" id="kcount">50 专题</span></h2>
+  <div class="filters" id="filters"></div>
+  <div class="cards" id="cards"></div>
+</section>
+
+<section>
+  <h2>五、寻地挑战 <span class="badge">看线索猜城池</span></h2>
+  <div class="quizbox">
+    <div class="filters" id="pinSets"></div>
+    <div class="qtitle">🎯 隐去地名，凭掌故扎针</div>
+    <div class="qclue" id="qclue"></div>
+    <div class="qopts" id="qopts"></div>
+    <div class="qclue" id="qresult" style="display:none"></div>
+    <button class="tbtn" id="nextQ" style="margin-top:10px">下一题 →</button>
+  </div>
+</section>
+
+<section>
+  <h2>六、自测小测 <span class="badge">中国史 + 世界史</span></h2>
+  <div class="quizhead"><span class="muted">共 <b id="qcount">0</b> 题 · 得分 <span class="score" id="score">0</span></span>
+    <button class="tbtn" id="resetQuiz">↺ 重新作答</button></div>
+  <div id="quiz"></div>
+</section>
+
+<section>
+  <h2>七、引文填空 <span class="badge">教材原文 · 史料对应</span></h2>
+  <p class="muted">题面引文全部扫描自教材原文，出处随题标注。填空题选对挖空词；对应题选出匹配的史实。</p>
+  <div class="quizhead"><span class="muted">共 <b id="clocount">0</b> 题 · 得分 <span class="score" id="closcore">0</span></span>
+    <button class="tbtn" id="resetCloze">↺ 重新作答</button></div>
+  <div class="filters" id="cloFilters"></div>
+  <div id="cloze"></div>
+</section>
+
+
+
+<section>
+  <h2>八、易错辨析 <span class="badge">点击展开</span></h2>
+  <div id="errs"></div>
+</section>
+
+<div class="hk">快捷键：<kbd>←</kbd><kbd>→</kbd> 换朝代 · <kbd>空格</kbd> 演绎 · <kbd>/</kbd> 搜索 · <kbd>Esc</kbd> 清空/关闭</div>
+<button id="toTop" class="totop" title="回到顶部">↑ 顶部</button>
+<footer>疆域与城池数据 derived from 「江山时序」Chronicles of the Realm (GPL-3.0) · 据谭其骧《中国历史地图集》与哈佛 CHGIS<br>
+世界底图据 Natural Earth（公有领域） · 疆域为历史示意，非精确国界 · 知识点整理自全部历史资料</footer>
+</div>
+
+<script>
+"use strict";
+const JS=__JS__;
+const KN=__KN__;
+const $=id=>document.getElementById(id);
+const NS='http://www.w3.org/2000/svg';
+function el(t,a){const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);return e;}
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+function store(k,v){try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v);}catch(e){return null;}}
+const MK=['A','B','C','D'];
+const state={era:Math.min(Math.max(+store('ht_era')||0,0),JS.eras.length-1),timer:null,speed:+store('ht_speed')||2.2,
+ zoom:4.97,pan:{x:-2203,y:735},fav:new Set(JSON.parse(store('ht_fav')||'[]')),
+ done:new Set(JSON.parse(store('ht_done')||'[]')),
+ quizAns:JSON.parse(store('ht_quiz')||'{}'),clozeAns:JSON.parse(store('ht_cloze')||'{}'),
+ cloFilter:'全部',wera:0,wsel:undefined,kfilter:'全部',qidx:0,pinSet:'cn'};
+
+/* 统一舆图：全球等距圆柱投影（360°→1520px；90°N→y40；中国与世界同图同坐标系） */
+const PPD=1520/360;
+function proj(lng,lat){return [(lng+180)*PPD,40+(90-lat)*PPD];}
+function P(ring){return ring.map(c=>proj(c[0],c[1]).map(v=>Math.round(v*100)/100).join(',')).join(' ');}
+function D(seg){return 'M'+seg.map(c=>proj(c[0],c[1]).map(v=>Math.round(v*100)/100).join(',')).join('L');}
+function ringCenter(ring){let x=0,y=0;ring.forEach(c=>{const p=proj(c[0],c[1]);x+=p[0];y+=p[1];});return [x/ring.length,y/ring.length];}
+function bigRing(paths){let best=null;paths.forEach(p=>{if(p[0]&&(!best||p[0].length>best.length))best=p[0];});return best;}
+/* 标签白色柔化底板：圆角矩形 + 云朵 blur（江山时序式标签观感，弃用贴字形描边晕的尖刺白斑）。
+   尺寸屏幕恒定；anchor: 'start'|'middle'（与 text 的 text-anchor 对应）；wFac: 字距修正 */
+function labelPlaque(tx,ty,txt,fsN,anchor,wFac){
+  const pad=2.2/state.zoom;
+  const wN=txt.length*fsN*(wFac||1.12)+pad*2;
+  const hN=fsN*1.32;
+  const x=anchor==='middle'?tx-wN/2:tx-pad;
+  const y=ty-fsN*1.0-pad*0.35;
+  return `<g filter="url(#lblSoft)"><rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${wN.toFixed(1)}" height="${hN.toFixed(1)}" rx="${(hN*0.45).toFixed(1)}" fill="#f7f1e0" fill-opacity=".85"/></g>`;
+}
+/* 环 → SVG path：直段 + 顶点 Q 贝塞尔圆角（借江山时序 smoothRingToSvgPath，GPL 已授权照搬）。
+   阈值按屏幕像素恒定换算（u=1/(zoom*k)）：低倍时数据已密、边缘短于阈值不圆润；
+   放大后边缘变长、圆角自动接管——任何缩放档都是柔和手绘曲线，无锯齿尖刺 */
+function smoothPath(ring){
+  if(!ring||ring.length<3)return '';
+  const u=1/(state.zoom*svgK());
+  let n=ring.length;
+  if(n>3&&ring[0][0]===ring[n-1][0]&&ring[0][1]===ring[n-1][1])n--;
+  if(n<3)return '';
+  const pts=new Array(n);
+  for(let i=0;i<n;i++){const p=proj(ring[i][0],ring[i][1]);pts[i]=[p[0],p[1]];}
+  const sx=new Array(n),sy=new Array(n),ex=new Array(n),ey=new Array(n),cv=new Uint8Array(n);
+  const MIN=0.6*u,CUT=4.2*u;
+  for(let i=0;i<n;i++){
+    const p0=pts[i],p1=pts[(i+1)%n];
+    const dx=p1[0]-p0[0],dy=p1[1]-p0[1];
+    const len=Math.hypot(dx,dy);
+    if(len>=MIN){
+      const t=Math.min(0.28,CUT/len);
+      sx[i]=p0[0]+dx*t;sy[i]=p0[1]+dy*t;
+      ex[i]=p1[0]-dx*t;ey[i]=p1[1]-dy*t;
+      cv[i]=1;
+    }else{sx[i]=p0[0];sy[i]=p0[1];ex[i]=p1[0];ey[i]=p1[1];}
+  }
+  let out='M'+sx[0].toFixed(2)+' '+sy[0].toFixed(2);
+  for(let i=0;i<n;i++){
+    const next=(i+1)%n;
+    if(cv[i])out+='L'+ex[i].toFixed(2)+' '+ey[i].toFixed(2);
+    if(cv[i]&&cv[next])out+='Q'+pts[next][0].toFixed(2)+' '+pts[next][1].toFixed(2)+' '+sx[next].toFixed(2)+' '+sy[next].toFixed(2);
+    else out+='L'+sx[next].toFixed(2)+' '+sy[next].toFixed(2);
+  }
+  return out+'Z';
+}
+/* 缩放反比缩放：屏幕上线宽/字号恒定 */
+function sw(w){return (w/state.zoom).toFixed(2);}
+/* V14.4 字体统一+放大可读性：所有地图标注统一乘 1.18 系数（屏幕恒定值 9.5→11、11→13、14→16.5），
+   高 DPI 屏更易读；fz 单点改动保证全图字号比例一致、不再出现个别标注忽大忽小。 */
+function fz(w){return (w*1.18/state.zoom).toFixed(2);}
+let _lblPts=[];
+function lblReset(){_lblPts=[];}
+function lbl(x,y,g){const G=g*state.zoom;return !_lblPts.some(p=>Math.abs(p[0]-x)<G&&Math.abs(p[1]-y)<G)&&(_lblPts.push([x,y]),true);}
+function isOn(k){const b=document.querySelector(`[data-layer="${k}"]`);return !b||b.classList.contains('on');}
+/* 静态水系（casing 衬底借江山时序技法） */
+function riverSvg(){
+  let h='';
+  (JS.rivers||[]).forEach(r=>{
+    const w=r.rank===1?2.8:1.8;
+    r.segs.forEach(sg=>{h+=`<path d="${D(sg)}" fill="none" stroke="rgba(246,239,225,.55)" stroke-width="${sw(w+1.6)}" stroke-linecap="round" stroke-linejoin="round"/>`;});
+    r.segs.forEach(sg=>{h+=`<path class="river-path" stroke-width="${sw(w)}" d="${D(sg)}"/>`;});
+  });
+  return h;
+}
+function lakeSvg(era){
+  let h='';
+  (JS.lakes||[]).forEach(lk=>{
+    if(lk.appear&&era.to<lk.appear)return;
+    if(lk.gone&&era.from>=lk.gone)return;
+    lk.paths.forEach(p=>{h+=`<path class="lake-poly" d="${smoothPath(p[0])}" stroke-width="${sw(.7)}"/>`;});
+  });
+  return h;
+}
+/* 周边政权：邻境浅褐、对峙政权各自设色、本朝主政权朱砂系
+   边界"宽晕圈+细勾线"双层过渡（V10.2：晕圈更宽更淡、勾线更细更柔，界线不抢画面） */
+function politySvg(polities,tint){
+  let h='';
+  (polities||[]).forEach(p=>{
+    const col=p.tint||tint;
+    /* V14.5 核心修复：域外政权(neighbor)不再画几何（晕圈/填充）。
+       中国版(江山时序)与世界版(historical-basemaps)对苏联、蒙古、日本等域外政权**重复绘制**，
+       两套数据源边界不重合 → 用户所见的"中国版原有边界与世界版重合产生的不美观双线"。
+       统一由世界版(wshapes)负责这些区域的几何与填色，本层仅保留名称标注。 */
+    if(p.role==='neighbor'){
+      const best=bigRing(p.paths);
+      if(best&&best.length>6){
+        const [cx,cy]=ringCenter(best);
+        if(lbl(cx,cy,26)){
+          const cn=esc(p.name),sz=fz(10);
+          h+=labelPlaque(cx,cy,cn,parseFloat(sz),'middle',1.2);
+          h+=`<text class="nb-label" x="${cx.toFixed(0)}" y="${cy.toFixed(0)}" font-size="${sz}">${cn}</text>`;
+        }
+      }
+      return;
+    }
+    const hs='rgba(59,45,32,.12)';
+    const hw=sw(3.8);
+    p.paths.forEach(pp=>{h+=`<path d="${smoothPath(pp[0])}" fill="none" stroke="${hs}" stroke-width="${hw}" stroke-linejoin="round"/>`;});
+    p.paths.forEach(pp=>{
+      h+=`<path class="region-path" data-r="${esc(p.name)}" d="${smoothPath(pp[0])}" fill="${col}" fill-opacity="${p.role==='main'?.26:.24}" stroke="rgba(59,45,32,${p.role==='main'?.22:.19})" stroke-width="${sw(p.role==='main'?.8:.7)}"/>`;
+    });
+    const best=bigRing(p.paths);
+    if(best&&best.length>6){
+      const [cx,cy]=ringCenter(best);
+      if(lbl(cx,cy,26)){
+        const cn=esc(p.name),sz=fz(p.role==='main'?14:(p.role==='rival'?12:10));
+        h+=labelPlaque(cx,cy,cn,parseFloat(sz),'middle',1.2);
+        h+=`<text class="${p.role==='neighbor'?'nb-label':'polity-label'}" x="${cx.toFixed(0)}" y="${cy.toFixed(0)}" font-size="${sz}">${cn}</text>`;
+      }
+    }
+  });
+  return h;
+}
+/* 工程通道（长城/直道/丝路/运河/海上航路）：按朝代年代区间显隐 */
+function corridorSvg(era){
+  let h='';
+  (JS.corridors||[]).forEach(c=>{
+    if(c.from>era.to||era.from>c.to)return;
+    let base='',over='',col='#6b5a44';
+    const dsh=(a,b)=>`stroke-dasharray="${sw(a)},${sw(b)}"`;
+    if(c.kind==='wall'){col='#5a4632';base=`stroke="${col}" stroke-width="${sw(2.6)}"`;over=`stroke="#f4ecd8" stroke-width="${sw(1.3)}" ${dsh(3,7)}`;}
+    else if(c.kind==='canal'){col='#3f6a8f';base=`stroke="${col}" stroke-width="${sw(2.2)}"`;over=`stroke="#f4ecd8" stroke-width="${sw(.9)}" ${dsh(10,5)}`;}
+    else if(c.kind==='sea'){col='#3f6a8f';base=`stroke="${col}" stroke-width="${sw(1.8)}" ${dsh(2,4)}`;}
+    else{col='#a67c1a';base=`stroke="${col}" stroke-width="${sw(2)}" ${dsh(10,5)}`;}
+    const flow=c.kind==='wall'?'':' cor-flow';
+    c.segs.forEach(sg=>{h+=`<path class="cor-line${flow}" d="${D(sg)}" fill="none" ${base} opacity=".8" stroke-linejoin="round"/>`;if(over)h+=`<path d="${D(sg)}" fill="none" ${over} opacity=".9"/>`;});
+    const mid=c.segs[0][Math.floor(c.segs[0].length/2)];
+    const [mx,my]=proj(mid[0],mid[1]);
+    const lblTxt=c.n.replace(/（[^）]*）/g,'');
+    if(state.zoom>=1.6&&lbl(mx,my,28))h+=`<text class="cor-label" x="${mx.toFixed(0)}" y="${(my-4/state.zoom).toFixed(0)}" font-size="${fz(10)}" fill="${col}">${esc(lblTxt)}</text>`;
+  });
+  return h;
+}
+/* 世界史内容（锚点/航路）：按"当前朝代年代区间"自动显隐——朝代驱动的中外对照 */
+function worldSvg(era){
+  if(!isOn('world'))return '';
+  const act=WLD.eras.map((w,i)=>({w,i})).filter(x=>x.w.f<=era.to&&x.w.t>=era.from).map(x=>x.i);
+  if(!act.length)return '';
+  let h='';
+  if(state.zoom<2.4)(WLD.routes||[]).forEach(r=>{
+    if(!act.includes(r.e))return;
+    const col=r.k==='wall'?'#9e2a2b':(r.k==='land'?'#a67c1a':'#3f6a8f');
+    const dash=r.k==='wall'?[4,5]:(r.k==='land'?[10,5]:[8,4]);
+    const d='M'+r.pts.map(c=>proj(c[0],c[1]).map(v=>v.toFixed(1)).join(',')).join('L');
+    h+=`<path class="wroute${r.k==='wall'?'':' flow'}" d="${d}" stroke="${col}" stroke-width="${sw(1.7)}" stroke-dasharray="${sw(dash[0])},${sw(dash[1])}"/>`;
+    const [lx,ly]=proj(r.pts[0][0],r.pts[0][1]);
+    if(lbl(lx,ly,22)){h+=labelPlaque(lx,ly-4/state.zoom,esc(r.n),9.5/state.zoom,'start');
+      h+=`<text class="wa-label" x="${lx.toFixed(1)}" y="${(ly-4/state.zoom).toFixed(1)}" font-size="${fz(9.5)}" fill="${col}">${esc(r.n)}</text>`;}
+  });
+  (WLD.anchors||[]).forEach((a,i)=>{
+    if(!act.includes(a.e))return;
+    const [x,y]=proj(a.c[0],a.c[1]);
+    if(x<10||x>1510||y<10||y>830)return;
+    /* V13：世界锚点升级为都城式钻点+细环（借江山时序 cap-ring 技法，对齐中国城池观感）。
+       核心文明发源地加呼吸光环，避免 100 个锚点全动画造成视觉噪音。 */
+    const major=/两河|尼罗|印度河|黄河|长江|罗马|雅典|长安|洛阳|耶路撒冷|麦加|君士坦丁堡|巴比伦|孟菲斯/.test(a.n);
+    h+=`<g class="wa-dot" data-w="${i}" transform="translate(${x.toFixed(1)},${y.toFixed(1)})">`
+      +(major?`<circle class="cap-breath" r="${sw(9)}" fill="none" stroke="#9e2a2b" stroke-width="${sw(.9)}"/>`:'')
+      +`<circle r="${sw(5.6)}" fill="rgba(247,241,224,.9)" stroke="#9e2a2b" stroke-width="${sw(1)}"/>`
+      +`<polygon class="cap-core" points="0,-${sw(3)} ${sw(3)},0 0,${sw(3)} -${sw(3)},0" fill="#9e2a2b" stroke="#f4ecd8" stroke-width="${sw(.7)}"/></g>`;
+    if(lbl(x,y,30)){h+=labelPlaque(x+6/state.zoom,y+2/state.zoom,esc(a.n),10/state.zoom,'start');
+      h+=`<text class="wa-label" x="${(x+6/state.zoom).toFixed(1)}" y="${(y+2/state.zoom).toFixed(1)}" font-size="${fz(10)}">${esc(a.n)}</text>`;}
+  });
+  return h;
+}
+/* 主渲染：底图→地形→水系→政权→政区→通道→残影→世界内容→山河→城池→装饰
+   keep=true 时保留城池/锚点弹卡与高亮（缩放/图层开关触发的重绘不收卡） */
+function renderMap(keep){
+  const era=JS.eras[state.era];if(!era)return;
+  const shape=phaseFor(era,state.snap);   // V10.5：当前相位几何
+  const svg=$('map');
+  const W=1520,H=840;
+  const sitePts=[];                   // 本帧已画城点（供大事图钉避让）
+  lblReset();
+  if(!keep){
+    $('siteCard').classList.remove('show');
+    document.querySelectorAll('#map svg .site-dot.active')?.forEach(n=>n.classList.remove('active'));
+  }
+  /* V13.2：把视图变换内联进新建的 <svg>，使其一插入 DOM 就带正确 transform，
+     杜绝"innerHTML 替换 → applyView 补变换"之间可能的合成层空窗帧（缩放后拖时间轴时表现为疆域瞬移/错位）。 */
+  const _vk=svgK();
+  const _vt=`translate(${(state.pan.x*_vk).toFixed(1)}px,${(state.pan.y*_vk).toFixed(1)}px) scale(${state.zoom})`;
+  let h=`<svg viewBox="0 0 ${W} ${H}" xmlns="${NS}" style="transform:${_vt}">`;
+  /* V14.2：世界政区镂空从"固定矩形"改为"当前相位中国疆域几何 mask"（借江山时序 clipPath 技法）。
+     固定矩形在民国/清等疆域收缩时暴露直边空洞（截图问题）；改用疆域本身做 evenodd 差集，
+     世界政区边界自然贴合中国疆域，不再有笔直切割线。 */
+  let _ownPaths='';
+  const addOwn=(r)=>{(r.paths||[]).forEach(pp=>{const ring=pp[0]||pp;if(ring&&ring.length>2){
+    _ownPaths+='M'+ring.map(c=>proj(c[0],c[1]).map(v=>v.toFixed(1)).join(',')).join('L')+'Z';}});};
+  /* 只用 polities（政权边界互斥不重叠）；regions 行政区划与 polities 重叠，
+     若加入会在 evenodd 下偶数次抵消→中国内部错误露出世界政区色块（深紫脏块）。 */
+  (shape.polities||[]).filter(p=>p.role!=='neighbor').forEach(addOwn);
+  h+=`<defs><linearGradient id="cSea" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f2ebd8"/><stop offset="1" stop-color="#ebe5d0"/></linearGradient>
+  <pattern id="cWave" width="60" height="20" patternUnits="userSpaceOnUse"><path d="M0,10 q10,-7 20,0 t20,0 t20,0" fill="none" stroke="#7d97a8" stroke-width="1" opacity=".05"/></pattern><linearGradient id="wLandG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e7d9ba"/><stop offset="1" stop-color="#dccd9f"/></linearGradient>
+  <filter id="lblSoft" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="${(1.25/(state.zoom*svgK())).toFixed(3)}"/></filter>
+  <clipPath id="wclip"><path d="M0,0 H${W} V${H} H0 Z ${_ownPaths}" clip-rule="evenodd"/></clipPath></defs>`;
+  h+=`<rect width="${W}" height="${H}" fill="url(#cSea)"/>`;
+  h+=wlandSvg();
+  if(isOn('base')&&JS.worldBase){
+    h+=`<image href="${JS.worldBase.src}" x="0" y="40" width="1520" height="760" opacity=".9" preserveAspectRatio="none" pointer-events="none"/>`;
+  }
+  /* 世界政区层（V11）：historical-basemaps 权威边界 40 相位，随中国时间轴年份联动取最近权威相；
+     教材相关政权中文名+专属色，其余中性色；边界套 smoothPath（与中国疆域同款平滑）；
+     中国细节矩形经 clipPath 镂空（中国由江山图层负责，避免双源边界打架）。 */
+  if(isOn('wshapes')&&JS.wpol){
+    const morph=worldPolitiesMorph(currentAxisYear());
+    const wpol=morph.list;
+    if(wpol&&wpol.length){
+      h+='<g clip-path="url(#wclip)">';
+      /* V14.9 移动端精简：小屏只画「中文政权（教材相关）+ 面积较大的英文政权」，
+         减少 DOM 节点与描边开销，手机上重绘更快。桌面端保持全部。 */
+      const _mobile=innerWidth<=820;
+      const render=wpol.filter(p=>!_mobile||/[一-龥]/.test(p.cn||'')||(p.a||0)>=18);
+      render.forEach(p=>{
+        if(!p.rings||!p.rings.length)return;
+        const cn=!!(p.cn&&/[一-龥]/.test(p.cn));
+        /* V14.4：降低世界政区填充浓度，让底图地形主导视觉，避免大面积纯色块与中国区域形成硬边界 */
+        const base=cn?.34:.22, alpha=p.alpha==null?1:p.alpha;
+        if(alpha<.04)return;
+        /* V14.9 性能：同一政权的所有环合并为单个 <path>（多子路径 M…Z）。
+           数据里环的透明度 a 全为 null（实测 7076/7076），样式一致，合并后视觉无损，
+           DOM 节点数大幅下降 → 重绘更快、手机更流畅。 */
+        let _d='';
+        p.rings.forEach(({r})=>{const d=smoothPath(r);if(d)_d+=d;});
+        if(!_d)return;
+        h+=`<path class="wshape" data-cn="${esc(p.cn)}" d="${_d}" fill="${p.tint}" fill-opacity="${(base*alpha).toFixed(3)}" stroke="rgba(59,45,32,${((cn?.38:.25)*alpha).toFixed(3)})" stroke-width="${sw(cn?.7:.45)}"/>`;
+      });
+      h+='</g>';
+      // 标签在 clipPath 组外渲染：避免滤镜+裁剪叠加导致底板发黑
+      // V14.6：标注避让间距 120→150，缓解密集区（东南亚/中国周边）标注重叠
+      const minD=150/(state.zoom*svgK());const placed=[];
+      wpol.forEach(p=>{
+        /* V14.5：未映射的英文政权不再显示标签（746 种多为澳洲原住民部落/美洲考古文化，硬译会失真）。
+           只显示有中文名的政权，消除中英混排，地图标注全中文统一。 */
+        if(!p.cn||!/[一-龥]/.test(p.cn))return;
+        if((p.alpha!=null&&p.alpha<.5)||p.a<12||!p.rings||!p.rings.length)return;
+        const big=p.rings.reduce((x,y)=>y.r.length>x.r.length?y:x).r;
+        // ringCenter 内部已 proj()，此处须传经纬度环（旧版二次投影导致标注永不显示）
+        const c=ringCenter(big);
+        if(c[0]<15||c[0]>W-15||c[1]<45||c[1]>H-10)return;
+        if(placed.some(q=>Math.abs(q[0]-c[0])<minD&&Math.abs(q[1]-c[1])<minD))return;
+        placed.push(c);
+        const fz0=fz(11.5);
+        h+=labelPlaque(c[0],c[1],p.cn,fz(11),'middle',1.2);
+        h+=`<text class="wshape-label" x="${c[0].toFixed(1)}" y="${c[1].toFixed(1)}" text-anchor="middle" font-size="${fz0}">${esc(p.cn)}</text>`;
+      });
+    }
+  }
+  h+=`<rect width="${W}" height="${H}" fill="url(#cWave)"/>`;
+  for(let lng=-180;lng<=180;lng+=20){const x=proj(lng,0)[0];h+=`<line x1="${x}" y1="0" x2="${x}" y2="${H}" stroke="#d9c8a6" stroke-width="${sw(.5)}" stroke-dasharray="${sw(3)},${sw(6)}"/>`;}
+  for(let lat=-40;lat<=90;lat+=10){const y=proj(0,lat)[1];if(y<0||y>H)continue;h+=`<line x1="0" y1="${y}" x2="${W}" y2="${y}" stroke="#d9c8a6" stroke-width="${sw(.5)}" stroke-dasharray="${sw(3)},${sw(6)}"/>`;}
+  if(isOn('water'))h+=riverSvg()+lakeSvg(era);
+  if(isOn('polities'))h+=politySvg(shape.polities,era.tint);
+  if(isOn('regions')){
+    const near=state.zoom>=2.4;
+    (shape.regions||[]).forEach((r,i)=>{
+      const color=era.tint||'#9e2a2b';
+      (r.paths||[]).forEach(p=>{
+        h+=`<path class="region-path" data-r="${esc(r.name)}" d="${smoothPath(p[0])}" fill="${color}" fill-opacity="${.20+((i%3)*.035)}" stroke="rgba(59,45,32,.18)" stroke-width="${sw(.6)}"/>`;
+      });
+      if(near&&i<16){
+        const best=bigRing(r.paths);
+        if(best&&best.length>6){
+          const [cx,cy]=ringCenter(best);
+          if(lbl(cx,cy,24))h+=`<text class="region-label" x="${cx.toFixed(0)}" y="${cy.toFixed(0)}" font-size="${fz(11)}">${esc(r.name)}</text>`;
+        }
+      }
+    });
+  }
+  if(isOn('corridors'))h+=corridorSvg(era);
+  if(state.era>0&&isOn('ghost')){
+    const pe=JS.eras[state.era-1];
+    const gs=phaseFor(pe).polities.filter(p=>p.role==='main');
+    const src=gs.length?gs:(pe.regions||[]);
+    src.forEach(r=>{(r.paths||[]).forEach(p=>{h+=`<path d="${smoothPath(p[0])}" fill="none" stroke="#9e2a2b" stroke-width="${sw(1.3)}" stroke-dasharray="${sw(5)},${sw(4)}" opacity=".35"/>`;});});
+  }
+  h+=worldSvg(era);
+  if(isOn('landmarks')&&JS.landmarks){
+    const KC={range:'#6b5a44',desert:'#9a8768',river:'#3f6a8f',lake:'#3f6a8f',trunk:'#9e2a2b',sea:'#3f6a8f'};
+    const near=state.zoom>=2.4;
+    JS.landmarks.forEach(l=>{
+      const [x,y]=proj(l.c[0],l.c[1]);
+      if(x<10||x>W-10||y<14||y>H-14)return;
+      if(!near&&l.k==='trunk')return;
+      if(!lbl(x,y,15))return;
+      const seaSt=l.k==='sea'?' font-style="italic" letter-spacing="3"':'';
+      const fs=l.k==='sea'?11:(l.k==='trunk'?11:10);
+      h+=`<text class="landmark" x="${x.toFixed(0)}" y="${y.toFixed(0)}" fill="${KC[l.k]||'#6b5a44'}" font-size="${fz(fs)}"${seaSt} transform="rotate(${l.r||0},${x.toFixed(0)},${y.toFixed(0)})">${esc(l.n)}</text>`;
+    });
+  }
+  if(isOn('sites')&&JS.settlements){
+    let n=0;const near=state.zoom>=2.4;
+    for(const [name,s] of Object.entries(JS.settlements)){
+      const inEra=(s.eras||[]).some(e=>e.k===era.key);
+      if(!inEra)continue;
+      if(n++>70)break;
+      const [x,y]=proj(s.lng,s.lat);
+      if(x<6||x>W-6||y<6||y>H-6)continue;
+      sitePts.push([x,y]);
+      if(s.capital){
+        /* 都城：菱形钻点 + 呼吸光环 + 朱砂细环（借江山时序 cap-ring/cap-breath-ring） */
+        h+=`<g class="site-dot" data-site="${esc(name)}" transform="translate(${x.toFixed(1)},${y.toFixed(1)})">`
+          +`<circle class="cap-breath" r="${sw(10)}" fill="none" stroke="#9e2a2b" stroke-width="${sw(1)}"/>`
+          +`<circle r="${sw(6.2)}" fill="none" stroke="#9e2a2b" stroke-opacity=".55" stroke-width="${sw(1)}"/>`
+          +`<polygon class="cap-core" points="0,-${sw(3.5)} ${sw(3.5)},0 0,${sw(3.5)} -${sw(3.5)},0" fill="#9e2a2b" stroke="#f4ecd8" stroke-width="${sw(.9)}"/></g>`;
+      }else{
+        h+=`<circle class="site-dot" data-site="${esc(name)}" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${sw(3.6)}" fill="#9e2a2b" stroke="#f4ecd8" stroke-width="${sw(1.2)}"/>`;
+      }
+      if(s.capital){
+        /* 城名底板与文字整体可点（借江山时序：点城名=打开沿革） */
+        h+=`<g class="site-tag" data-site="${esc(name)}" style="cursor:pointer">`
+          +labelPlaque(x+7/state.zoom,y+3/state.zoom,esc(name),11/state.zoom,'start')
+          +`<text class="site-label" x="${(x+7/state.zoom).toFixed(1)}" y="${(y+3/state.zoom).toFixed(1)}" font-size="${fz(11)}">${esc(name)}</text></g>`;
+      }
+    }
+  }
+  /* 大事里程碑图钉（借江山时序 ev-pin：细环+菱形钻点，悬停气泡，按朝代年代区间显隐）。
+     ⚠️ 勿用全局 lbl() 去重——其半径=g×zoom（viewBox 单位），zoom7.4 下 g=20 即 35°，会把整朝图钉拒光；
+     图钉用独立 34px 屏幕间距检查；并自动避让城池点（图钉后画会盖住城点，点击被截走）：
+     依次尝试偏移位，全部撞城点则舍弃该图钉（事件仍在侧栏可查） */
+  if(isOn('events')&&JS.milestones){
+    let n=0;const placed=[];const u2=1/(state.zoom*svgK());
+    const minD=34*u2,nearR=17*u2;
+    const offs=[[0,0],[16*u2,-16*u2],[-16*u2,-16*u2],[16*u2,16*u2],[-16*u2,16*u2],[30*u2,0],[-30*u2,0]];
+    for(let i=0;i<JS.milestones.length&&n<90;i++){
+      let m=JS.milestones[i];
+      if(m.y<shape.f||m.y>shape.t)continue;   // 相位年份区间（拖动时间轴时随相位变化）
+      const [px,py]=proj(m.c[0],m.c[1]);
+      if(px<12||px>W-12||py<12||py>H-12)continue;
+      let ox=null,oy=null;
+      for(const o of offs){
+        const cx2=px+o[0],cy2=py+o[1];
+        if(cx2<12||cx2>W-12||cy2<12||cy2>H-12)continue;
+        if(sitePts.some(p=>Math.abs(p[0]-cx2)<nearR&&Math.abs(p[1]-cy2)<nearR))continue;
+        if(placed.some(p=>Math.abs(p[0]-cx2)<minD&&Math.abs(p[1]-cy2)<minD))continue;
+        ox=cx2;oy=cy2;break;
+      }
+      if(ox===null)continue;
+      placed.push([ox,oy]);n++;
+      h+=`<g class="ms-pin" data-ms="${i}" transform="translate(${ox.toFixed(1)},${oy.toFixed(1)})">`
+        +`<circle r="${sw(6.8)}" fill="rgba(247,241,224,.92)" stroke="#9e2a2b" stroke-width="${sw(.9)}"/>`
+        +`<polygon points="0,-${sw(3.1)} ${sw(3.1)},0 0,${sw(3.1)} -${sw(3.1)},0" fill="#9e2a2b"/></g>`;
+    }
+  }
+  /* 视口锚定装饰：指北针与朝代印章（缩放平移下位置/大小恒定） */
+  const vx=-state.pan.x/state.zoom, vy=-state.pan.y/state.zoom, isz=1/state.zoom;
+  h+=`<g transform="translate(${(vx+W*isz-46*isz).toFixed(1)},${(vy+64*isz).toFixed(1)}) scale(${isz.toFixed(3)})" opacity=".85"><circle r="17" fill="#f4ecd8" fill-opacity=".8" stroke="#a2906e" stroke-width="1"/><path d="M0,-13 L3.6,0 L0,13 L-3.6,0 Z" fill="#9e2a2b"/><path d="M0,-13 L3.6,0 L0,13 L-3.6,0 Z" fill="#6b5a44" opacity=".4" transform="rotate(180)"/><circle r="1.8" fill="#f4ecd8"/><text y="31" text-anchor="middle" font-size="11" fill="#6b5a44">北</text></g>`;
+  /* 版本标识：帮助用户确认加载的是最新版（避免浏览器缓存看到旧固定矩形镂空）。 */
+  h+=`<g transform="translate(${(vx+W*isz-46*isz).toFixed(1)},${(vy+108*isz).toFixed(1)}) scale(${isz.toFixed(3)})" opacity=".7" pointer-events="none"><text text-anchor="middle" font-size="10" fill="#9e2a2b" font-family="Songti SC,SimSun,serif">V15.0</text></g>`;
+  const sealN=era.name||'';
+  if(sealN){
+    const swd=Math.max(2,sealN.length)*13+16;
+    h+=`<g transform="translate(${(vx+30*isz).toFixed(1)},${(vy+H*isz-56*isz).toFixed(1)}) scale(${isz.toFixed(3)}) rotate(-2)" opacity=".92" pointer-events="none"><rect x="0" y="-13" width="${swd}" height="26" rx="4" fill="#9e2a2b"/><text x="${swd/2}" y="4.5" text-anchor="middle" font-size="13" fill="#f4ecd8" letter-spacing="1">${esc(sealN)}</text></g>`;
+  }
+  h+='</svg>';
+  svg.innerHTML=h;
+  applyView();
+  svg.querySelectorAll('.site-dot').forEach(n=>{
+    /* 悬停放大由 JS 驱动（CSS :hover 在 SVG 重建后可能卡死不回位），离开必回原尺寸；
+       圆点走 style.r（屏幕恒定 16px），都城菱形钻点走 transform scale */
+    const grow=()=>{if(n.tagName==='g'){const c=n.querySelector('.cap-core');if(c)c.style.transform='scale(1.35)';}
+                    else n.style.r=(8/(state.zoom*svgK())).toFixed(2);};
+    const shrink=()=>{if(n.tagName==='g'){const c=n.querySelector('.cap-core');if(c)c.style.transform='';}
+                      else n.style.r='';};
+    n.addEventListener('mouseenter',grow);
+    n.addEventListener('mouseleave',shrink);
+    n.addEventListener('click',()=>showSite(n.dataset.site));
+  });
+  svg.querySelectorAll('.ms-pin').forEach(n=>{
+    const m=JS.milestones[+n.dataset.ms];
+    n.addEventListener('mouseenter',ev=>tip(`<b>${m.y<0?'前'+(-m.y):m.y}年</b>　${esc(m.t)}${m.site?'<br><span style="opacity:.75">📍 '+esc(m.site)+'</span>':''}`,ev));
+    n.addEventListener('mouseleave',hideTip);
+    n.addEventListener('click',()=>showEventCard(m));
+  });
+  svg.querySelectorAll('.wshape').forEach(n=>{
+    const yr=WPOL_YR==null?'':(WPOL_YR<0?'公元前'+(-WPOL_YR):WPOL_YR+'年')+' · ';
+    const info=(WLD.polityInfo||{})[n.dataset.cn];
+    n.addEventListener('mouseenter',ev=>tip(`<b>${esc(n.dataset.cn)}</b><br><span style="opacity:.75">${yr}${era.name} · 世界政区据 historical-basemaps</span>${info?'<br><span style="opacity:.9;color:#e8c48a">▸ 点击查看政权简介</span>':''}`,ev));
+    n.addEventListener('mouseleave',hideTip);
+    /* V14.9 世界史内容：点击政权查看简介（存续/特点/对华关联） */
+    if(info)n.addEventListener('click',ev=>{ev.stopPropagation();showPolityCard(n.dataset.cn,info);});
+  });
+  svg.querySelectorAll('.site-tag').forEach(n=>{
+    /* 点城名=打开沿革（借江山时序）；悬停城名联动放大城点 */
+    n.addEventListener('click',()=>showSite(n.dataset.site));
+    const dot=svg.querySelector(`.site-dot[data-site="${CSS.escape(n.dataset.site)}"]`);
+    if(dot){
+      const grow=()=>{if(dot.tagName==='g'){const c=dot.querySelector('.cap-core');if(c)c.style.transform='scale(1.35)';}
+                      else dot.style.r=(8/(state.zoom*svgK())).toFixed(2);};
+      const shrink=()=>{if(dot.tagName==='g'){const c=dot.querySelector('.cap-core');if(c)c.style.transform='';}
+                        else dot.style.r='';};
+      n.addEventListener('mouseenter',grow);
+      n.addEventListener('mouseleave',shrink);
+    }
+  });
+  if(state.activeSite){const d=svg.querySelector(`.site-dot[data-site="${CSS.escape(state.activeSite)}"]`);if(d)d.classList.add('active');}
+  svg.querySelectorAll('.wa-dot').forEach(n=>{
+    n.addEventListener('click',()=>showAnchor(+n.dataset.w));
+    const core=n.querySelector('.cap-core');
+    n.addEventListener('mouseenter',ev=>{if(core)core.style.transform='scale(1.4)';
+      const a=WLD.anchors[+n.dataset.w];tip(`<b>${esc(a.n)}</b><br>${esc(a.d)}`,ev);});
+    n.addEventListener('mouseleave',()=>{if(core)core.style.transform='';});
+  });
+  svg.querySelectorAll('.region-path').forEach(n=>n.addEventListener('mouseenter',ev=>tip(`<b>${n.dataset.r||''}</b>${n.dataset.role==='neighbor'?'<span style="opacity:.75">（域外政权）</span>':''}<br>${era.name} · ${era.snapFrom||era.from}—${era.snapTo||era.to}`,ev)));
+  svg.addEventListener('mousemove',moveTip);
+  svg.addEventListener('mouseleave',hideTip);
+}
+/* 取城点的 viewBox 坐标：兼容 <circle cx/cy> 与 V13 <g transform="translate(x,y)"> 两种形态。
+   V13 把都城改为菱形钻点 <g> 后，原代码读 cx 得 null→0，缩放校准失效，故统一由此函数取坐标。 */
+function siteVB(dot){
+  if(!dot)return null;
+  const cx=dot.getAttribute('cx'),cy=dot.getAttribute('cy');
+  if(cx!=null&&cy!=null)return [+cx,+cy];
+  const t=dot.getAttribute('transform')||'';
+  const m=/translate\(\s*([-\d.]+)[ ,]+([-\d.]+)/.exec(t);
+  return m?[+m[1],+m[2]]:null;
+}
+/* 取景自校准 v2：全实测。先以两城池屏幕距离/理论距离之比校正 zoom，
+   再实测 pan→位置的响应比率，把基准城池精确居中。对一切变换实现细节免疫。 */
+function calibrateView(){
+  try{
+    const dot=document.querySelector('#map svg .site-dot');
+    if(!dot)return;
+    const vb=siteVB(dot);
+    const mb=document.querySelector('.mapbox').getBoundingClientRect();
+    const target=[mb.x+mb.width/2,mb.y+mb.height/2];
+    const rect=()=>dot.getBoundingClientRect();
+    // 1) 实测 pan 响应比率
+    const r0=rect();
+    state.pan.x+=10;applyView();
+    const rx=rect().x-r0.x;
+    state.pan.x-=10;applyView();
+    state.pan.y+=10;applyView();
+    const ry=rect().y-r0.y;
+    state.pan.y-=10;applyView();
+    if(Math.abs(rx)<1||Math.abs(ry)<1)return;
+    // 2) 平移修正：把基准点精确放到画布中心
+    const r1=rect();
+    state.pan.x+=(target[0]-(r1.x+r1.width/2))/rx*10;
+    state.pan.y+=(target[1]-(r1.y+r1.height/2))/ry*10;
+    clampPan();applyView();
+    // 3) 缩放校正：以两城池实测屏幕距离/理论距离
+    const ds=[...document.querySelectorAll('#map svg .site-dot')];
+    if(ds.length>=2){
+      const A=ds[0].getBoundingClientRect(),B=ds[1].getBoundingClientRect();
+      const a=siteVB(ds[0]),b=siteVB(ds[1]);
+      if(!a||!b)return;
+      const gDist=Math.hypot(b[0]-a[0],b[1]-a[1]);
+      const mDist=Math.hypot(B.x-A.x,B.y-A.y);
+      if(gDist>2&&mDist>1){
+        const PPD_target=state.zoom*PPD;
+        const sf=(gDist*PPD_target)/mDist;
+        if(sf>0.6&&sf<1.6){
+          state.zoom*=sf;
+          // 缩放后重新居中（绕画布中心缩放，中心不动，仅复核一次）
+          const r2=rect();
+          state.pan.x+=(target[0]-(r2.x+r2.width/2))/rx*10;
+          state.pan.y+=(target[1]-(r2.y+r2.height/2))/ry*10;
+          clampPan();applyView();
+        }
+      }
+    }
+  }catch(e){}
+}
+/* 视图变换：pan 以 viewBox 单位存储；translate 需乘布局系数 k（viewBox→CSS px） */
+function svgK(){const mb=document.querySelector('.mapbox');return (mb&&mb.clientWidth?mb.clientWidth:1520)/1520;}
+function applyView(){const s=document.querySelector('#map svg');if(!s)return;const k=svgK();s.style.transform=`translate(${(state.pan.x*k).toFixed(1)}px,${(state.pan.y*k).toFixed(1)}px) scale(${state.zoom})`;updateScalebar();}
+/* 比例尺：屏幕恒定 100px 目标长度，按画布中心纬度换算千米并取整（1/2/5×10ⁿ） */
+function updateScalebar(){
+  const el=$('scalebar');if(!el)return;
+  const z=state.zoom,k=svgK(),pxPerDeg=z*k*PPD;
+  const latC=90-((420-state.pan.y/z)-40)/PPD;
+  const kmPerPx=111.32*Math.max(.15,Math.cos(latC*Math.PI/180))/pxPerDeg;
+  const target=100*kmPerPx;
+  let km=1,best=1e18;
+  for(let e=0;e<6;e++)for(const m of[1,2,5]){const v=m*Math.pow(10,e);const d=Math.abs(v-target);if(d<best){best=d;km=v;}}
+  el.firstElementChild.style.width=(km/kmPerPx).toFixed(0)+'px';
+  el.lastElementChild.textContent=km+' 千米';
+}
+function clampPan(){const mx=760*(state.zoom-1),my=420*(state.zoom-1);state.pan.x=Math.max(-mx,Math.min(mx,state.pan.x));state.pan.y=Math.max(-my,Math.min(my,state.pan.y));}
+/* 交互清除城池选中：拖动/缩放代表新的意图，避免高亮圆点"迟迟不消失"的滞留感 */
+function clearActive(){
+  if(!state.activeSite)return;
+  state.activeSite=null;
+  document.querySelectorAll('#map svg .site-dot.active').forEach(n=>n.classList.remove('active'));
+}
+/* 以视口锚点缩放：fx/fy 为锚点相对画布中心的 viewBox 偏移，缩放前后锚点所指地理位置不动。
+   推导：X = C + T + z*(q*k - C)，令同一 q 在 z' 下仍映射到 X 解得 T' = T*(z'/z) + (X-C)*(1-z'/z)。 */
+function zoomAt(fx,fy,z1){
+  const z0=state.zoom;
+  z1=Math.min(8,Math.max(1,z1));
+  if(z1===z0)return;
+  const s=z1/z0;
+  state.pan.x=state.pan.x*s+fx*(1-s);
+  state.pan.y=state.pan.y*s+fy*(1-s);
+  state.zoom=z1;
+  clearActive();
+  clampPan();applyView();scheduleRedraw();
+}
+/* 锚点换算：#map 未被变换，其布局盒即 svg 未变换位置（getBoundingClientRect 不受子级 transform 影响） */
+function viewAnchor(ev,box){const r=box.getBoundingClientRect();const k=r.width/1520||1;return [(ev.clientX-r.left-r.width/2)/k,(ev.clientY-r.top-r.height/2)/k];}
+/* 缩放手势结束后防抖重绘：恢复 sw()/fz() 屏幕恒定线宽与远近景 LOD（保留弹卡） */
+let _redrawT=null;
+function scheduleRedraw(){if(_redrawT)clearTimeout(_redrawT);_redrawT=setTimeout(()=>{_redrawT=null;renderMap(true);},240);}
+let _drag=null,_dragMoved=false;
+function bindPan(){
+  const box=$('map');
+  const ptrs=new Map();let pinch=null;
+  box.addEventListener('pointerdown',ev=>{
+    if(ev.button!==0)return;
+    ptrs.set(ev.pointerId,{x:ev.clientX,y:ev.clientY});
+    if(ptrs.size===2){_drag=null;const it=[...ptrs.values()];pinch={d:Math.hypot(it[0].x-it[1].x,it[0].y-it[1].y),z:state.zoom};_dragMoved=true;return;}
+    // 不立即捕获：原地点击要让 click 正常落到城池/锚点上
+    _drag={sx:ev.clientX-state.pan.x*svgK(),sy:ev.clientY-state.pan.y*svgK(),id:ev.pointerId,cap:false};
+    _dragMoved=false;
+  });
+  box.addEventListener('pointermove',ev=>{
+    if(ptrs.has(ev.pointerId))ptrs.set(ev.pointerId,{x:ev.clientX,y:ev.clientY});
+    if(ptrs.size===2&&pinch){
+      const it=[...ptrs.values()];const d=Math.hypot(it[0].x-it[1].x,it[0].y-it[1].y);
+      const mx=(it[0].x+it[1].x)/2,my=(it[0].y+it[1].y)/2;
+      const [fx,fy]=viewAnchor({clientX:mx,clientY:my},box);
+      zoomAt(fx,fy,state.zoom*(d/pinch.d));
+      pinch.d=d;return;
+    }
+    if(!_drag||ptrs.size>1)return;
+    const k=svgK();
+    if(_drag.lx===undefined){_drag.lx=ev.clientX;_drag.ly=ev.clientY;}
+    const nx=state.pan.x+(ev.clientX-_drag.lx)/k, ny=state.pan.y+(ev.clientY-_drag.ly)/k;
+    if(Math.abs(ev.clientX-_drag.lx)+Math.abs(ev.clientY-_drag.ly)<=4)return;
+    if(!_drag.cap){_drag.cap=true;_dragMoved=true;try{box.setPointerCapture(_drag.id);}catch(e){}hideTip();clearActive();}
+    _drag.lx=ev.clientX;_drag.ly=ev.clientY;
+    state.pan.x=nx;state.pan.y=ny;clampPan();applyView();
+  });
+  const end=ev=>{
+    ptrs.delete(ev.pointerId);
+    if(ptrs.size<2)pinch=null;
+    if(_drag)_drag=null;
+  };
+  box.addEventListener('pointerup',end);
+  box.addEventListener('pointercancel',end);
+  window.addEventListener('pointerup',end);
+  box.addEventListener('click',ev=>{if(_dragMoved){ev.stopPropagation();_dragMoved=false;}},true);
+  box.addEventListener('wheel',ev=>{
+    ev.preventDefault();
+    const d=Math.max(-.45,Math.min(.45,-ev.deltaY*.0022));
+    if(!d)return;
+    const [fx,fy]=viewAnchor(ev,box);
+    zoomAt(fx,fy,state.zoom+d);
+  },{passive:false});
+}
+function tip(html,ev){const t=$('tipEl')||(()=>{const d=document.createElement('div');d.id='tipEl';d.style.cssText='position:fixed;display:none;z-index:99;pointer-events:none;background:#3b2d20;color:#f4ecd8;border-radius:3px;padding:5px 9px;font-size:11px;box-shadow:0 4px 12px rgba(0,0,0,.3)';document.body.appendChild(d);return d;})();t.innerHTML=html;t.style.display='block';moveTip(ev);}
+function moveTip(ev){const t=document.getElementById('tipEl');if(!t||t.style.display==='none')return;if(!ev||typeof ev.clientX!=='number')return;let x=ev.clientX+12,y=ev.clientY+12;if(x+t.offsetWidth>innerWidth-8)x=ev.clientX-t.offsetWidth-12;if(y+t.offsetHeight>innerHeight-8)y=ev.clientY-t.offsetHeight-12;t.style.left=Math.max(4,x)+'px';t.style.top=Math.max(4,y)+'px';}
+function hideTip(){const t=document.getElementById('tipEl');if(t)t.style.display='none';}
+function renderDynasties(){
+  $('dynasties').innerHTML=JS.eras.map((e,i)=>`<div class="dchip${i===state.era?' on':''}" data-i="${i}" style="${i===state.era?'':''}">${esc(e.name)}</div>`).join('');
+  $('dynasties').querySelectorAll('.dchip').forEach(n=>n.onclick=()=>setEra(+n.dataset.i));
+}
+/* 世界大事年份解析："约前18世纪"→-1750、"前509年"→-509、"481年"→481、"20世纪初"→1905 */
+function worldEventYear(w){
+  if(!w)return null;
+  const s=String(w).replace(/\s/g,'');
+  let m=/前(\d+)世纪/.exec(s);if(m)return -(parseInt(m[1])-0.5)*100;
+  m=/(\d+)世纪/.exec(s);if(m)return parseInt(m[1])*100-50;
+  m=/前(\d+)年/.exec(s);if(m)return -parseInt(m[1]);
+  m=/(\d{3,4})年/.exec(s);if(m)return parseInt(m[1]);
+  return null;
+}
+function renderEraInfo(){
+  const e=JS.eras[state.era];
+  const shape=phaseFor(e,state.snap);
+  $('yearFromText').innerHTML=(e.from<0?'公元前 <b>':'公元 <b>')+Math.abs(e.from)+'</b> 年';
+  $('yearToText').innerHTML=(e.to<0?'至 公元前 <b>':'至 公元 <b>')+Math.abs(e.to)+'</b> 年';
+  $('dynastyTitle').textContent=e.name+(shape.f!==undefined?`（${shape.f<0?'前':''}${Math.abs(shape.f)}年疆域）`:'');
+  const regs=(shape.regions||[]).slice(0,12);
+  const pols=shape.polities||[];
+  const mains=pols.filter(p=>p.role==='main').map(p=>p.name);
+  const rivals=pols.filter(p=>p.role==='rival').map(p=>p.name);
+  const nbrs=pols.filter(p=>p.role==='neighbor').map(p=>p.name);
+  const wacts=WLD.eras.map((w,i)=>({w,i})).filter(x=>x.w.f<=e.to&&x.w.t>=e.from);
+  /* V14 中外对照：以当前时间轴年份为基准，把同期世界大事按"距今年差"排序（近的在前、高亮） */
+  const axisY=currentAxisYear();
+  const wev=[];const wseen=new Set();
+  wacts.forEach(x=>(x.w.events||[]).forEach(v=>{
+    if(wseen.has(v.t))return;wseen.add(v.t);
+    const yy=worldEventYear(v.w);
+    const gap=yy==null?1e9:Math.abs(yy-axisY);
+    const nearTxt=gap>=1e9?'':(yy<0?'前'+(-yy):yy)+'年';
+    wev.push({...v,_y:yy,_gap:gap,_near:nearTxt});
+  }));
+  wev.sort((a,b)=>a._gap-b._gap);
+  /* 当前精确年份的世界政区主要政权（V12 形变的当前相，取面积前 8 的中文名政权） */
+  const wpolNow=(worldPolitiesMorph(axisY).list||[]).filter(p=>/[一-龥]/.test(p.cn)).slice(0,8);
+  const wanc=[];const wasen=new Set();
+  wacts.forEach(x=>(WLD.anchors||[]).forEach((a,i)=>{if(a.e===x.i&&!wasen.has(a.n))wasen.add(a.n),wanc.push({a,i});}));
+  const sm=(JS.eraSummaries||{})[e.key]||'';
+  const yTxt=y=>y<0?'前'+(-y):y+'';
+  $('eraInfo').innerHTML=`<div class="yr">第 ${state.era+1} / ${JS.eras.length} 朝 · 同期世界：${wacts.map(x=>esc(x.w.n)).join('、')||'—'}</div>
+    <div class="cmp">
+      <div class="cmp-row"><span class="k">中国</span><span class="v">${esc(e.name)}（${e.from<0?'前':''}${Math.abs(e.from)}—${e.to<0?'前':''}${Math.abs(e.to)}）· 当前 <b>${yTxt(axisY)}</b> 年</span></div>
+      <div class="cmp-row"><span class="k">世界</span><span class="v">${wacts.map(x=>esc(x.w.n)).join(' / ')||'—'} · 权威政区约 <b>${WPOL_YR==null?'—':yTxt(WPOL_YR)}</b> 年</span></div>
+      <div class="cmp-row"><span class="k">主要政权</span><span class="v">${wpolNow.map(p=>`<span class="cmp-tag"><i style="background:${p.tint}"></i>${esc(p.cn)}</span>`).join('')||'—'}</span></div>
+    </div>
+    <h3>${esc(e.name)} · 疆域纪要</h3>
+    ${sm?`<p class="muted" style="margin:0 0 8px;text-align:justify">${esc(sm)}</p>`:''}
+    <p>公元${e.from<0?'前':''}${Math.abs(e.from)}年 — ${e.to<0?'前':''}${Math.abs(e.to)}年，共 ${(shape.regions||[]).length} 个政区、${pols.length} 个政权标注。缩小看同期世界，放大看中国细节。</p>
+    <div class="legend"><b style="color:var(--cinnabar)">世界大事（按距今远近 · 当前 ${yTxt(axisY)} 年）：</b><br>${wev.slice(0,7).map(v=>`<div class="ev${v._gap<=60?' near':''}"><b>${esc(v.w)}</b>　${esc(v.t)}${v._gap<1e9?`<span class="gap">（${v._near}${v._gap===0?'·当年':'·距今'+v._gap+'年'}）</span>`:''}</div>`).join('')||'（暂无）'}${wev.length>7?`<div class="ev" style="color:var(--dim)">…等 ${wev.length} 条</div>`:''}</div>
+    <div class="legend"><b style="color:var(--cinnabar)">本朝主要政区（点击高亮）：</b><br>
+    ${regs.map(r=>`<span class="lgi" data-r="${esc(r.name)}"><i class="swatch" style="background:${e.tint}"></i>${esc(r.name)}</span>`).join('　')||'（无标注）'}</div>
+    <div class="legend"><b>域内 / 对峙政权：</b>${esc([...mains,...rivals].join('、'))||'—'}<br>
+    <b>域外政权：</b>${esc(nbrs.join('、'))||'—'}</div>
+    <div class="legend"><b>世界锚点（同期，点击查看）：</b><br>
+    ${wanc.slice(0,14).map(x=>`<span class="xlink" data-wi="${x.i}">${esc(x.a.n)} ›</span>`).join('')+(wanc.length>14?`<span style="color:var(--dim)">等 ${wanc.length} 处</span>`:'')||'—'}</div>
+    <div class="legend"><b style="color:var(--cinnabar)">本朝大事（据江山时序年表）：</b><br>
+    ${((JS.events||{})[e.key]||[]).map(v=>`<div class="ev"><b>${v.y<0?'前'+(-v.y):v.y}年</b>　${esc(v.t)}</div>`).join('')||'（暂无）'}</div>
+    <div class="legend"><b>导览提示</b><br>滚轮/双指缩放：放大看中国细节，缩小看同期世界；点城池与锚点看详情。</div>`;
+  $('eraInfo').querySelectorAll('.lgi[data-r]').forEach(n=>n.onclick=()=>{
+    const p=document.querySelector(`[data-r="${CSS.escape(n.dataset.r)}"]`);
+    if(p){p.style.fillOpacity='.7';setTimeout(()=>p.style.fillOpacity='',900);}
+  });
+  $('eraInfo').querySelectorAll('.xlink[data-wi]').forEach(n=>n.onclick=()=>showAnchor(+n.dataset.wi));
+}
+
+/* V14.9 世界政权简介卡：点击地图上的世界政区弹出（存续年代 / 概况 / 与中国的关联） */
+function showPolityCard(name,info){
+  const card=$('siteCard');if(!card)return;
+  card.innerHTML=`<span class="sclose" title="关闭">✕</span><h4>${esc(name)}</h4>`
+    +`<div class="pc-era">${esc(info.t||'')}</div>`
+    +`<p class="pc-d">${esc(info.d||'')}</p>`
+    +(info.cn?`<div class="pc-cn"><b>与中国的关联</b>：${esc(info.cn)}</div>`:'');
+  card.classList.add('show');
+  document.querySelector('#siteCard .sclose').onclick=()=>card.classList.remove('show');
+}
+/* V14.7 世界史专题：按《纲要下》九大单元分组渲染。
+   卡片默认只显示首 2 条要点，点"展开"看全部；点卡片标题跳到对应时代地图。 */
+function renderWorldTopics(){
+  const box=$('worldTopics');if(!box)return;
+  const topics=(WLD&&WLD.topics)||[];
+  if(!topics.length){box.innerHTML='';return;}
+  const yTxt=y=>y<0?'前'+(-y):y+'';
+  let h='';
+  const eras=(WLD.eras||[]);
+  eras.forEach((era,ei)=>{
+    const list=topics.filter(t=>t.era===ei);
+    if(!list.length)return;
+    h+=`<div class="wt-era">${esc(era.n)}<span style="color:var(--dim);font-weight:400;font-size:11.5px"> · ${yTxt(era.f)}—${yTxt(era.t)}年</span></div>`;
+    h+=`<div class="wt-grid">`;
+    list.forEach(t=>{
+      const pts=t.pts||[];
+      const first=pts.slice(0,2),rest=pts.slice(2);
+      h+=`<div class="wt-card" data-tid="${esc(t.id)}" data-era="${t.era}">
+        <h4>${esc(t.t)}</h4>
+        <div class="meta">${esc(t.unit||'')} · 约 ${yTxt(t.f)}—${yTxt(t.t2)} 年</div>
+        <ul>${first.map(p=>`<li>${esc(p)}</li>`).join('')}</ul>
+        ${rest.length?`<ul class="wt-hidden" data-more>${rest.map(p=>`<li>${esc(p)}</li>`).join('')}</ul>
+        <div class="wt-toggle" data-more-btn>▾ 展开其余 ${rest.length} 条要点</div>`:''}
+        <div style="margin:6px 0 2px">${(t.concepts||[]).map(c=>`<span class="cc">${esc(c)}</span>`).join('')}</div>
+        ${t.cn?`<div class="cnlink"><b>与中国的关联</b>：${esc(t.cn)}</div>`:''}
+      </div>`;
+    });
+    h+=`</div>`;
+  });
+  box.innerHTML=h;
+  box.querySelectorAll('.wt-card').forEach(card=>{
+    card.addEventListener('click',ev=>{
+      // 点"展开"按钮：切换折叠，不跳转
+      if(ev.target.hasAttribute('data-more-btn')){
+        const more=card.querySelector('[data-more]');
+        if(more){
+          const hid=more.classList.toggle('wt-hidden');
+          ev.target.textContent=hid?`▾ 展开其余 ${more.children.length} 条要点`:`▴ 收起`;
+        }
+        ev.stopPropagation();return;
+      }
+      // 点卡片本体：跳到对应时代地图
+      const ei=+card.dataset.era;
+      if(!isNaN(ei)){
+        setEra(ei);
+        document.querySelector('section').scrollIntoView({behavior:'smooth',block:'start'});
+      }
+    });
+  });
+}
+
+function setEra(i){const n=JS.eras.length;state.era=((i%n)+n)%n;store('ht_era',''+state.era);
+  state.snap=null;state.scrubYear=null;   // 回到该朝极盛相（游标吸附）
+  renderDynasties();renderEraInfo();renderMap();buildAxis();}
+function showSite(name){
+  const s=JS.settlements[name];if(!s)return;
+  state.activeSite=name;
+  const evs=(s.eras||[]).map(e=>`<div class="pev"><span class="y">${esc(ERA_NAME[e.k]||e.k)}</span><span>${esc(e.modern||'')}${e.remark?'　'+esc(e.remark):''}</span></div>`).join('');
+  const body=`
+    <div class="where">今地：${esc(s.modern||'—')} · 坐标 ${s.lat}°N, ${s.lng}°E · 跨 ${(s.eras||[]).length} 朝沿革</div>
+    ${evs||'<div class="muted">暂无分期沿革数据</div>'}
+    <div class="hint">数据 derived from 江山时序 · CHGIS / 《中国历史地图集》 · 点图上其他城池可切换</div>`;
+  // 地图内浮层卡片：点击城池立即在图上看沿革
+  const card=$('siteCard');
+  card.innerHTML=`<span class="sclose" title="关闭">✕</span><h4>${esc(name)}</h4>`+body+`<div style="margin-top:6px"><span class="goto" id="scDetail">在下方查看完整沿革 ↓</span></div>`;
+  card.classList.add('show');
+  document.querySelector('#siteCard .sclose').onclick=()=>card.classList.remove('show');
+  $('scDetail').onclick=()=>{$('detail').scrollIntoView({behavior:'smooth',block:'center'});};
+  // 下方板块同步
+  $('detail').innerHTML=`<h3>${esc(name)}</h3>`+body;
+  flash('detail');
+  // 高亮当前城池圆点
+  document.querySelectorAll('#map svg .site-dot.active').forEach(n=>n.classList.remove('active'));
+  const dot=document.querySelector(`#map svg .site-dot[data-site="${CSS.escape(name)}"]`);
+  if(dot)dot.classList.add('active');
+}
+function flash(id){const n=$(id);n.classList.remove('flash');void n.offsetWidth;n.classList.add('flash');}
+/* 大事图钉弹卡（复用地图内卡片） */
+function showEventCard(m){
+  const card=$('siteCard');
+  card.innerHTML=`<span class="sclose" title="关闭">✕</span><h4>${m.y<0?'公元前 '+(-m.y)+' 年':m.y+' 年'}</h4>`
+    +`<div class="where">${esc(m.site||'—')}</div>`
+    +`<p style="font-size:12.5px;color:var(--ink2);margin:0 0 6px">${esc(m.t)}</p>`
+    +`<div class="hint">大事记详见侧栏「本朝大事」 · 数据 derived from 江山时序</div>`;
+  card.classList.add('show');
+  document.querySelector('#siteCard .sclose').onclick=()=>card.classList.remove('show');
+}
+/* 知识点 */
+function renderFilters(){
+  const cats=['全部',...new Set(KN.map(k=>k.cat))];
+  $('filters').innerHTML=cats.map(c=>`<div class="fbtn${state.kfilter===c?' on':''}" data-c="${esc(c)}">${esc(c)}</div>`).join('');
+  $('filters').querySelectorAll('.fbtn').forEach(n=>n.onclick=()=>{state.kfilter=n.dataset.c;renderFilters();renderCards();});
+}
+function renderCards(){
+  const list=KN.map((k,i)=>({k,i})).filter(x=>state.kfilter==='全部'||x.k.cat===state.kfilter);
+  const wrapQ=s=>s.replace(/「([^」]{2,80})」/g,(m,q)=>`<span class="kquote" data-k="${esc(q)}">「${esc(q)}」</span>`);
+  $('kcount').textContent=`${list.length} / ${KN.length} 专题`;
+  $('cards').innerHTML=list.map(({k,i})=>`<div class="kc ${k.color||''}${state.done.has('k'+i)?' done':''}" data-k="k${i}">
+    <div class="kact"><button class="fav${state.fav.has('k'+i)?' on':''}" data-f="k${i}">⭐</button><button class="done${state.done.has('k'+i)?' on':''}" data-d="k${i}">✓</button></div>
+    <h3>${esc(k.title)}</h3><ul>${k.points.map(s=>`<li>${wrapQ(s)}</li>`).join('')}</ul>
+    <div class="ktag">${esc(k.cat)}${k.era?' · '+esc(k.era):''}</div></div>`).join('');
+  $('cards').querySelectorAll('.fav').forEach(b=>b.onclick=()=>toggleSet(state.fav,'ht_fav',b.dataset.f));
+  $('cards').querySelectorAll('.done').forEach(b=>b.onclick=()=>toggleSet(state.done,'ht_done',b.dataset.d));
+  $('cards').addEventListener('click',ev=>{
+    const qn=ev.target.closest('.kquote');if(!qn)return;
+    showQuotePop(qn);
+  });
+}
+/* 教材引文点击 → 相关事件与简介弹窗 */
+function showQuotePop(qn){
+  let pop=$('quotePop');
+  if(!pop){
+    pop=document.createElement('div');pop.id='quotePop';document.body.appendChild(pop);
+    document.addEventListener('click',ev=>{const p=$('quotePop');
+      if(p&&p.style.display==='block'&&!p.contains(ev.target)&&!ev.target.closest('.kquote'))p.style.display='none';});
+  }
+  const q=qn.dataset.k||'';
+  const hits=QUOTE_EV.filter(x=>q.indexOf(x.k)>=0);
+  const r=qn.getBoundingClientRect();
+  const left=Math.min(Math.max(8,r.left),innerWidth-350);
+  let top=r.bottom+8;if(top+320>innerHeight)top=Math.max(8,r.top-320);
+  pop.style.left=left+'px';pop.style.top=top+'px';
+  pop.innerHTML=`<h5>「${esc(q.slice(0,42))}${q.length>42?'…':''}」· 相关事件与简介</h5>`
+    +(hits.length?hits.map(x=>`<div class="qe"><b>${esc(x.t)}</b>${x.y?`<span style="opacity:.7">　${esc(x.y)}</span>`:''}<div class="qd">${esc(x.d)}</div></div>`).join(''):'<div class="qe"><span style="opacity:.7">暂无对应事件条目</span></div>')
+    +'<div class="hint" style="margin-top:8px;font-style:italic">点击舆图上同期图钉可看地点 · Esc 关闭</div>';
+  pop.style.display='block';
+}
+function toggleSet(set,key,id){set.has(id)?set.delete(id):set.add(id);store(key,JSON.stringify([...set]));renderCards();}
+/* 教材引文 → 相关事件映射（点击知识点中的「引文」弹出；事件与简介均据纲要/选必教材） */
+const QUOTE_EV=[
+ {k:'苏湖熟',t:'经济重心南移完成',y:'两宋',d:'两宋时期南方经济超过北方，苏湖地区成为全国粮仓，"国家根本，仰给东南"，经济重心南移最终完成。'},
+ {k:'仁政',t:'孟子倡导"仁政"',y:'战国',d:'孟子继承孔子思想，主张"民为贵，社稷次之，君为轻"，统治者应省刑罚、薄税敛，施行仁政。'},
+ {k:'法治',t:'韩非子主张"以法治国"',y:'战国',d:'法家集大成者韩非子主张以法治国、加强君主集权，为秦统一后的制度提供了理论依据。'},
+ {k:'罢黜百家',t:'汉武帝尊崇儒术',y:'西汉',d:'汉武帝接受董仲舒建议，罢黜百家、独尊儒术，儒学自此成为封建社会的主流意识形态。'},
+ {k:'存天理',t:'程朱理学形成',y:'两宋',d:'二程与朱熹建立程朱理学，提出"存天理，灭人欲"，南宋后成为官方哲学，明中期后日趋僵化。'},
+ {k:'扶清灭洋',t:'义和团运动',y:'1898—1900',d:'义和团提出"扶清灭洋"口号，具有朴素的爱国色彩，后被八国联军镇压，《辛丑条约》签订。'},
+ {k:'自强',t:'洋务运动',y:'1861—1895',d:'洋务运动以"自强""求富"为口号，兴办军事与民用工业，是中国近代化的开端，但未使中国走上富强道路。'},
+ {k:'求富',t:'洋务运动',y:'1861—1895',d:'洋务运动以"自强""求富"为口号，兴办军事与民用工业，是中国近代化的开端，但未使中国走上富强道路。'},
+ {k:'中学为体',t:'"中体西用"',y:'19世纪60—90年代',d:'洋务派以"中学为体，西学为用"为指导思想，主张在维护封建制度的前提下引进西方技术。'},
+ {k:'法者天下之公器',t:'维新变法思想',y:'1895—1898',d:'梁启超《变法通议》称"法者天下之公器，变者天下之公理"，主张变法图强，推动戊戌维新运动。'},
+ {k:'驱除鞑虏',t:'同盟会纲领与三民主义',y:'1905',d:'同盟会以"驱除鞑虏，恢复中华，创立民国，平均地权"为纲领，孙中山阐发为民族、民权、民生三民主义。'},
+ {k:'外争主权',t:'五四运动',y:'1919',d:'巴黎和会上中国外交失败，北京学生喊出"外争主权，内除国贼"，五四运动爆发，是新民主主义革命的开端。'},
+ {k:'还我青岛',t:'五四运动',y:'1919',d:'因列强将德国在山东的权益转让给日本，五四运动提出"还我青岛"，掀起全国性的反帝爱国浪潮。'},
+ {k:'打倒列强',t:'北伐战争',y:'1926—1928',d:'国民革命军高唱"打倒列强，除军阀"进行北伐，基本推翻北洋军阀统治，后因国民党右派叛变革命而受挫。'},
+ {k:'停止内战',t:'抗日救亡运动',y:'1935',d:'《八一宣言》号召"停止内战，一致抗日"；一二·九运动掀起全国抗日救亡运动新高潮。'},
+ {k:'工农兵',t:'全面抗战路线',y:'1937',d:'全面抗战开始后，中国共产党提出动员全民族一切力量的全面抗战路线，开辟敌后战场。'},
+ {k:'鼓足干劲',t:'社会主义建设总路线',y:'1958',d:'中共八大二次会议提出"鼓足干劲、力争上游、多快好省地建设社会主义"的总路线，随后发动"大跃进"运动。'},
+ {k:'以阶级斗争为纲',t:'"文化大革命"',y:'1966—1976',d:'"以阶级斗争为纲"的错误方针导致"文化大革命"发生，给党和国家造成严重灾难，是党在探索社会主义建设道路上的严重曲折。'},
+ {k:'一个中心',t:'改革开放与基本路线',y:'1987',d:'中共十三大确立"一个中心、两个基本点"的基本路线，改革开放进入新阶段。'},
+ {k:'四个现代化',t:'"四个现代化"的提出',y:'1964',d:'三届全国人大一次会议上周恩来提出建设现代农业、工业、国防和科学技术（四个现代化）的宏伟目标。'},
+ {k:'打扫干净屋子',t:'新中国外交三大方针',y:'1949',d:'毛泽东提出"另起炉灶""打扫干净屋子再请客""一边倒"三大方针，奠定了新中国独立自主和平外交的基础。'},
+ {k:'法律面前人人平等',t:'罗马法',y:'罗马帝国时期',d:'罗马法蕴含人人平等、公正至上的观念，体系完备，对近代欧美各国的立法与司法产生深远影响。'},
+ {k:'教育要面向',t:'"三个面向"',y:'1983',d:'邓小平为教育提出"面向现代化，面向世界，面向未来"，成为新时期教育改革与发展的战略方针。'},
+ {k:'世界工厂',t:'英国成为"世界工厂"',y:'19世纪中期',d:'第一次工业革命后，英国的生产能力冠绝全球，成为"世界工厂"，确立"日不落"殖民霸权。'},
+ {k:'铁幕',t:'丘吉尔"铁幕演说"',y:'1946',d:'丘吉尔在美国发表演说，称"从波罗的海的什切青到亚得里亚海的的里雅斯特，一幅铁幕已经降落"，揭开冷战序幕。'},
+ {k:'国之大事',t:'西周分封制',y:'西周',d:'西周实行分封制与宗法制，"国之大事，在祀与戎"——祭祀与军事是国家政治生活的两件大事。'},
+ {k:'封建亲戚',t:'分封制与宗法制',y:'西周',d:'西周"封建亲戚，以藩屏周"，分封同姓亲族与功臣为诸侯，形成天子—诸侯—卿大夫—士的等级序列。'},
+ {k:'天子',t:'分封制与宗法制',y:'西周',d:'西周"封建亲戚，以藩屏周"，分封同姓亲族与功臣为诸侯，形成天子—诸侯—卿大夫—士的等级序列。'},
+ {k:'天下共苦战斗不休',t:'秦废分封、立郡县',y:'秦',d:'秦统一后鉴于"天下共苦战斗不休"源于分封，采纳李斯建议废除分封制，全面推行郡县制，中央集权由此确立。'},
+ {k:'废分封',t:'秦郡县制',y:'秦',d:'秦统一后鉴于"天下共苦战斗不休"源于分封，采纳李斯建议废除分封制，全面推行郡县制，中央集权由此确立。'},
+ {k:'唐以资产为宗',t:'两税法',y:'780',d:'唐德宗采纳杨炎建议实行两税法，"唯以资产为宗，不以丁身为本"，征税标准由人丁转向财产。'},
+ {k:'滋生人丁',t:'盛世滋生人丁，永不加赋',y:'1712',d:'康熙帝宣布以1711年人丁数为定额，"滋生人丁，永不加赋"，随后雍正朝推行摊丁入亩，人头税逐渐废除。'},
+ {k:'上品无寒门',t:'九品中正制',y:'魏晋',d:'九品中正制选官权被门阀士族垄断，出现"上品无寒门，下品无势族"的局面，隋唐被科举制取代。'},
+ {k:'律为正文',t:'律令法体系',y:'唐',d:'唐代形成律（刑法）、令（制度）、格（行政）、式（细则）兼备的法典体系，《唐律疏议》代表中华法系最高成就。'},
+ {k:'民为贵',t:'孟子倡导"仁政"',y:'战国',d:'孟子继承孔子思想，主张"民为贵，社稷次之，君为轻"，统治者应省刑罚、薄税敛，施行仁政。'},
+ {k:'天行有常',t:'荀子的天道观',y:'战国',d:'荀子提出"天行有常，不为尧存，不为桀亡"，主张制天命而用之，体现朴素的唯物思想。'},
+ {k:'君子和而不同',t:'孔子的处世思想',y:'春秋',d:'孔子主张"君子和而不同"，提倡求同存异的处世之道，是中华文明兼容并包精神的思想源头之一。'},
+ {k:'富贵不能淫',t:'孟子的人格理想',y:'战国',d:'孟子以"富贵不能淫，贫贱不能移，威武不能屈"刻画"大丈夫"人格，成为中华民族的精神坐标。'},
+ {k:'路曼曼',t:'屈原与《离骚》',y:'战国',d:'屈原创立"楚辞"，代表作《离骚》以"路曼曼其修远兮，吾将上下而求索"表达执着的爱国求索精神。'},
+ {k:'节用而爱人',t:'孔子的为政主张',y:'春秋',d:'孔子主张"节用而爱人，使民以时"，反对苛政与滥用民力，体现早期民本思想。'},
+ {k:'施仁政于民',t:'孟子论仁政',y:'战国',d:'孟子对齐宣王言"施仁政于民，省刑罚，薄税敛"，主张以德服人，反对霸道。'},
+ {k:'三教合归儒',t:'三教合一',y:'隋唐',d:'隋唐时期儒学家提出"三教合归儒"（三教合一），儒学吸收佛道思想，为宋明理学的形成奠定基础。'},
+ {k:'耀兵异域',t:'郑和下西洋',y:'1405—1433',d:'郑和七下西洋，"耀兵异域，示中国富强"，是世界航海史上的壮举，但朝贡贸易未给中国带来持续收益。'},
+ {k:'天下之大害',t:'黄宗羲的启蒙思想',y:'明清之际',d:'黄宗羲抨击君主专制"为天下之大害者，君而已矣"，提出君臣共治、以天下为主君为客的进步思想。'},
+ {k:'天下兴亡',t:'顾炎武的启蒙思想',y:'明清之际',d:'顾炎武倡导经世致用，后人将其"保天下者，匹夫之贱与有责焉"概括为"天下兴亡，匹夫有责"。'},
+ {k:'有田同耕',t:'《天朝田亩制度》',y:'1853',d:'太平天国颁布《天朝田亩制度》，按人口平均分配土地，希望建立"有田同耕，有饭同食"的理想社会，因空想性未能实行。'},
+ {k:'反饥饿反内战',t:'国统区学生运动',y:'1947',d:'1947年国统区爆发"反饥饿、反内战、反迫害"运动，形成反对国民党统治的第二条战线。'},
+ {k:'三个月',t:'日本"三个月灭亡中国"计划的破产',y:'1937',d:'淞沪会战打破日本"三个月灭亡中国"的狂妄计划，台儿庄大捷取得正面战场重大胜利。'},
+ {k:'我们的比赛',t:'新中国的政治制度',y:'新中国',d:'"我们的比赛是一个全国人民大团结的会议"——人民代表大会制度是中国的根本政治制度（引文指全国人民代表大会）。'},
+ {k:'反官僚主义',t:'社会主义建设的探索',y:'1950—70年代',d:'建国后党开展整风与反官僚主义等运动，反映了对社会主义建设道路的探索与曲折。'},
+ {k:'和平和发展',t:'和平与发展的时代主题',y:'改革开放后',d:'邓小平提出和平与发展是当代世界的两大问题，为中国改革开放与对外政策提供了基本判断。'},
+ {k:'大国是关键',t:'新世纪中国外交布局',y:'新世纪',d:'新世纪中国外交布局："大国是关键、周边是首要、发展中国家是基础、多边是重要舞台"。'},
+ {k:'一条线',t:'"一条线"外交战略',y:'20世纪70年代',d:'20世纪70年代中国提出"一条线、一大片"战略，联合反对苏联霸权主义，中美关系走向正常化。'},
+ {k:'依法治国',t:'依法治国方略',y:'1997起',d:'中共十五大提出依法治国、建设社会主义法治国家，写入宪法，标志着治国方式的重大转变。'},
+ {k:'五讲四美',t:'社会主义精神文明建设',y:'1981起',d:'"五讲四美三热爱"是改革开放后社会主义精神文明建设的重要内容。'},
+ {k:'民族区域自治',t:'民族区域自治制度',y:'新中国',d:'民族区域自治制度是在国家统一领导下各少数民族聚居地方实行区域自治的基本政治制度。'},
+ {k:'境内各民族',t:'民族区域自治制度',y:'新中国',d:'民族区域自治制度是在国家统一领导下各少数民族聚居地方实行区域自治的基本政治制度。'},
+ {k:'对内蒙的基本方针',t:'民族区域自治的实践',y:'1947',d:'1947年内蒙古自治区成立，是民族区域自治制度的开端，为处理民族关系提供了范例。'},
+ {k:'酝酿交换',t:'科举与铨选',y:'唐',d:'唐代选官制度下官吏铨选日趋规范，"酝酿交换用，优予官职"反映了门荫与科举并行的过渡形态。'},
+ {k:'所有公务员',t:'考试院与文官考试',y:'民国',d:'南京国民政府设立考试院，规定公务员须经考试铨叙任用，仿行孙中山五权宪法思想。'},
+ {k:'不可接触者',t:'古代印度的种姓制度',y:'古代印度',d:'种姓制度将社会分为婆罗门、刹帝利、吠舍、首陀罗四等，"不可接触者"处于社会最底层，等级贵贱世代相袭。'},
+ {k:'手持大刀',t:'义和团运动',y:'1898—1900',d:'义和团以"扶清灭洋"相号召，民间歌谣流传甚广，反帝爱国运动最终被中外反动势力联合镇压。'},
+ {k:'鼓励出口',t:'重商主义',y:'16—18世纪',d:'重商主义主张"鼓励出口，减少进口"，是早期殖民国家积累金银、推行贸易保护的基本经济政策。'},
+ {k:'全世界无产者',t:'马克思主义的诞生',y:'1848',d:'1848年《共产党宣言》发表，结尾号召"全世界无产者，联合起来"，标志着马克思主义的诞生。'},
+ {k:'社会主义可能',t:'列宁主义的贡献',y:'1917',d:'列宁提出社会主义可能首先在少数甚至单独一个资本主义国家内获得胜利，指导了俄国十月革命。'},
+ {k:'一切权力归苏维埃',t:'俄国十月革命',y:'1917',d:'"一切权力归苏维埃"是十月革命的口号，布尔什维克领导起义建立世界上第一个社会主义国家。'},
+ {k:'十月革命',t:'俄国十月革命',y:'1917',d:'"十月革命一声炮响，给我们送来了马克思列宁主义"，十月革命深刻影响了包括中国在内的世界历史进程。'},
+];
+const PIN_W=[
+ {clue:'「楔形文字与《汉谟拉比法典》的故乡，两河之间的黑土地」。此地是？',opts:['两河流域','尼罗河流域','印度河流域','爱琴海地区'],ans:'两河流域'},
+ {clue:'「金字塔与象形文字，尼罗河的赠礼」。此地是？',opts:['两河流域','尼罗河流域','巴尔干半岛','阿拉伯半岛'],ans:'尼罗河流域'},
+ {clue:'「帕特农神庙的所在地，城邦民主的摇篮」。此城是？',opts:['斯巴达','雅典','罗马','迦太基'],ans:'雅典'},
+ {clue:'「1453年陷落于奥斯曼之手的千年帝都」。此城是？',opts:['罗马','亚历山大','君士坦丁堡','巴格达'],ans:'君士坦丁堡'},
+ {clue:'「622年穆罕默德在此建立政教合一的公社」。此城是？',opts:['麦加','麦地那','大马士革','巴格达'],ans:'麦地那'},
+ {clue:'「1492年哥伦布船队最先到达的岛屿」。此地是？',opts:['马德拉','圣萨尔瓦多','伊斯帕尼奥拉','古巴'],ans:'圣萨尔瓦多'},
+ {clue:'「1789年7月14日，市民攻占了这里的监狱」。此城是？',opts:['伦敦','维也纳','巴黎','马德里'],ans:'巴黎'},
+ {clue:'「1914年6月，斐迪南大公在此遇刺」。此城是？',opts:['贝尔格莱德','萨拉热窝','维也纳','华沙'],ans:'萨拉热窝'}
+];
+const PIN=[
+ {clue:'「秦故都，商鞅变法之地，今陕西咸阳」。此城是？',opts:['咸阳','长安','洛阳','邯郸'],ans:'咸阳'},
+ {clue:'「西汉至唐的都城，八朝古都，玄武门之变发生地」。是？',opts:['洛阳','长安','开封','北京'],ans:'长安'},
+ {clue:'「北宋都城，商品经济繁荣，《清明上河图》所绘」。是？',opts:['临安','开封','长安','南京'],ans:'开封'},
+ {clue:'「南宋都城，当时称临安，今浙江」。是？',opts:['南京','杭州','苏州','扬州'],ans:'杭州'},
+ {clue:'「战国时赵国都城，胡服骑射之地」。是？',opts:['邯郸','大梁','临淄','郢都'],ans:'邯郸'},
+ {clue:'「三国时吴国都城，今南京」。是？',opts:['建业','洛阳','成都','许昌'],ans:'建业'},
+ {clue:'「元明清都城，今北京，明代称蓟城故地」。是？',opts:['大都','中都','上都','东京'],ans:'大都'},
+ {clue:'「春秋战国时齐国都城，今山东淄博」。是？',opts:['临淄','曲阜','邯郸','大梁'],ans:'临淄'}
+];
+function renderPinSets(){
+  const sets=[['cn',`中国城池 ${PIN.length}`],['w',`世界文明 ${PIN_W.length}`]];
+  $('pinSets').innerHTML=sets.map(([k,l])=>`<div class="fbtn${state.pinSet===k?' on':''}" data-s="${k}">${l}</div>`).join('');
+  $('pinSets').querySelectorAll('.fbtn').forEach(n=>n.onclick=()=>{state.pinSet=n.dataset.s;state.qidx=0;renderPinSets();renderPin();});
+}
+function renderPin(){
+  const Q=state.pinSet==='w'?PIN_W:PIN;
+  const q=Q[state.qidx%Q.length];
+  $('qclue').textContent=q.clue;
+  $('qopts').innerHTML=q.opts.map(o=>`<div class="qopt" data-o="${o}">${o}</div>`).join('');
+  $('qresult').style.display='none';
+  $('qopts').querySelectorAll('.qopt').forEach(n=>n.onclick=()=>{
+    const ok=n.dataset.o===q.ans;n.classList.add(ok?'right':'wrong');
+    $('qresult').style.display='block';
+    $('qresult').innerHTML=ok?'✅ 答对了！':'❌ 正确答案是 '+q.ans;
+    if(!ok)$('qopts').querySelectorAll('.qopt').forEach(x=>{if(x.dataset.o===q.ans)x.classList.add('right');});
+  });
+}
+/* 自测/易错（复用V3数据） */
+function renderQuiz(){
+  const Q=JS.quiz||[];
+  $('qcount').textContent=Q.length;
+  $('quiz').innerHTML=Q.map((q,i)=>{
+    const p=state.quizAns[i];
+    const opts=q.opts.map((o,j)=>{let c='opt';if(p!==undefined){if(j===q.ans)c+=' right';else if(j===p)c+=' wrong';}return `<div class="${c}" data-q="${i}" data-o="${j}">${MK[j]}. ${esc(o)}</div>`;}).join('');
+    return `<div class="qitem"><div class="qt">${i+1}. ${esc(q.q)}</div><div class="opts">${opts}</div>
+      <div class="qexp${p!==undefined?' show':''}">${p!==undefined?`<b>${p===q.ans?'✓ 正确':'✗ 正确答案 '+MK[q.ans]}</b>　`:''}${esc(q.exp)}</div></div>`;
+  }).join('');
+  $('quiz').querySelectorAll('.opt').forEach(n=>n.onclick=()=>{const i=+n.dataset.q;if(state.quizAns[i]!==undefined)return;state.quizAns[i]=+n.dataset.o;store('ht_quiz',JSON.stringify(state.quizAns));renderQuiz();});
+  const sc=Q.reduce((s,q,i)=>s+(state.quizAns[i]===q.ans?1:0),0);
+  $('score').textContent=`${sc} / ${Q.length}`;
+}
+function renderErrs(){
+  $('errs').innerHTML=(JS.pitfalls||[]).map(p=>`<div class="err"><div class="q">${esc(p.q)}</div><div class="a">${esc(p.a)}</div></div>`).join('');
+  $('errs').querySelectorAll('.err').forEach(n=>n.onclick=()=>n.classList.toggle('open'));
+}
+/* 城池沿革行的朝代键名 -> 中文名 */
+const ERA_NAME={};JS.eras.forEach(e=>ERA_NAME[e.key]=e.name);
+/* 引文填空（fill 选词 / match 史料对应），支持按教材筛选 */
+function renderCloze(){
+  const ALL=JS.cloze||[];
+  const Q=ALL.map((q,i)=>({q,i})).filter(({q})=>state.cloFilter==='全部'||q.src.startsWith(state.cloFilter));
+  $('clocount').textContent=ALL.length;
+  $('cloze').innerHTML=Q.map(({q,i},n)=>{
+    const p=state.clozeAns[i];
+    const ai=q.opts.indexOf(q.a);
+    const opts=q.opts.map((o,j)=>{
+      let c='opt';
+      if(p!==undefined){if(j===ai)c+=' right';else if(o===p)c+=' wrong';}
+      return `<div class="${c}" data-ci="${i}" data-o="${esc(o)}">${MK[j]}. ${esc(o)}</div>`;
+    }).join('');
+    const clue=q.clue?`<div style="color:var(--ink2);font-size:12.5px;margin:0 0 8px">${esc(q.clue)}</div>`:'';
+    return `<div class="qitem" data-ci="${i}"><div class="qt">${n+1}. ${esc(q.q)}${q.t==='match'?'　<span style="font-weight:400;color:var(--dim);font-size:11px">（史料对应）</span>':''}</div>${clue}
+      <div class="opts">${opts}</div>
+      <div class="qexp${p!==undefined?' show':''}">${p!==undefined?`<b>${p===q.a?'✓ 正确':'✗ 正确答案 '+MK[ai]+'·'+esc(q.a)}</b>　`:''}〔${esc(q.src)}〕</div></div>`;
+  }).join('');
+  $('cloze').querySelectorAll('.opt').forEach(n=>n.onclick=()=>{
+    const i=+n.dataset.ci;
+    if(state.clozeAns[i]!==undefined)return;
+    state.clozeAns[i]=n.dataset.o;
+    store('ht_cloze',JSON.stringify(state.clozeAns));
+    renderCloze();
+  });
+  const sc=Q.filter(({q,i})=>state.clozeAns[i]===q.a).length;
+  const answered=Q.filter(({i})=>state.clozeAns[i]!==undefined).length;
+  $('closcore').textContent=answered?`${sc} / ${answered}（共 ${ALL.length} 题）`:`0 / 0（共 ${ALL.length} 题）`;
+}
+function renderCloFilters(){
+  const ALL=JS.cloze||[];
+  const cats=['全部',...new Set(ALL.map(c=>c.src.split('·')[0]))];
+  $('cloFilters').innerHTML=cats.map(c=>{
+    const n=c==='全部'?ALL.length:ALL.filter(x=>x.src.startsWith(c)).length;
+    if(c!=='全部'&&n===0)return '';
+    return `<div class="fbtn${state.cloFilter===c?' on':''}" data-c="${esc(c)}">${esc(c)} ${n}</div>`;
+  }).join('');
+  $('cloFilters').querySelectorAll('.fbtn').forEach(n=>n.onclick=()=>{state.cloFilter=n.dataset.c;renderCloFilters();renderCloze();});
+}
+/* 世界史数据与锚点弹卡（统一舆图） */
+const WLD=JS.world||{eras:[],anchors:[],routes:[],land:[]};
+/* V10.5 相位模型：208 个 phase 的几何在 JS.phases（s=快照名），渲染统一经 phaseFor 取形 */
+const PH=Object.fromEntries((JS.phases||[]).map(p=>[p.s,p]));
+const AXIS_Y0=Math.min.apply(null,(JS.phases||[]).map(p=>p.f));
+const AXIS_Y1=Math.max.apply(null,(JS.phases||[]).map(p=>p.t));
+function phaseFor(era,snap){
+  const ph=PH[snap||era.snap];
+  if(ph)return ph;
+  return {s:era.snap,f:era.snapFrom||era.from,t:era.snapTo||era.to,regions:[],polities:[]};
+}
+function firstCnEraFor(wi){const w=WLD.eras[wi];if(!w)return -1;return JS.eras.findIndex(e=>e.from<=w.t&&e.to>=w.f);}
+/* V11 世界政区 40 相位联动：按当前时间轴年份取最近权威年份的世界政区相。
+   currentAxisYear：拖动游标时用 scrubYear；否则取当前朝代极盛相年份中点。 */
+function currentAxisYear(){
+  if(state.scrubYear!=null)return state.scrubYear;
+  const e=JS.eras[state.era];if(!e)return -500;
+  const ph=phaseFor(e,state.snap);
+  return Math.round(((ph.f||e.from)+(ph.t||e.to))/2);
+}
+let WPOL_YR=null,WPOL_KEY=null;
+function worldPolitiesForYear(y,era){
+  const wp=JS.wpol;if(!wp||!wp.years)return [];
+  let best=wp.years[0][1],byr=wp.years[0][0],bd=1e18;
+  for(const [yr,k] of wp.years){const d=Math.abs(yr-y);if(d<bd){bd=d;best=k;byr=yr;}}
+  WPOL_YR=byr;WPOL_KEY=best;
+  return wp[best]||[];
+}
+/* ===== V12 世界政区连续形变（同名政权逐点插值，替代 V11 的最近相跳变）=====
+   40 权威年份作关键帧：当前年份落在 y0<y<y1 之间时，同名政权环按中心匹配、
+   重采样后逐点线性插值；仅一帧存在的政权淡入淡出。环点顺序统一从度数最小顶点起、
+   按与原环一致的绕向，避免插值时扭结撕裂。结果缓存按年份键，拖动时 O(1) 命中。 */
+const WPM_CACHE=new Map();
+/* 环 → 沿周长等距重采样到 N 点（闭合）。统一绕向：面积符号为正（逆时针）时翻转使其与另一环同向由调用方处理 */
+function wpmResample(ring,N){
+  if(!ring||ring.length<3)return null;
+  let pts=ring.slice();
+  if(pts.length>1&&pts[0][0]===pts[pts.length-1][0]&&pts[0][1]===pts[pts.length-1][1])pts=pts.slice(0,-1);
+  const n=pts.length;if(n<3)return null;
+  // 累计弧长
+  const cum=[0];let total=0;
+  for(let i=0;i<n;i++){const a=pts[i],b=pts[(i+1)%n];total+=Math.hypot(b[0]-a[0],b[1]-a[1]);cum.push(total);}
+  if(total<1e-9)return null;
+  const out=new Array(N);let seg=0;
+  for(let k=0;k<N;k++){
+    const t=total*k/N;
+    while(seg<n-1&&cum[seg+1]<t)seg++;
+    const segLen=cum[seg+1]-cum[seg]||1e-9;
+    const f=(t-cum[seg])/segLen;
+    const a=pts[seg],b=pts[(seg+1)%n];
+    out[k]=[a[0]+(b[0]-a[0])*f,a[1]+(b[1]-a[1])*f];
+  }
+  return out;
+}
+function wpmRingArea(r){let s=0;for(let i=0;i<r.length;i++){const a=r[i],b=r[(i+1)%r.length];s+=a[0]*b[1]-b[0]*a[1];}return s/2;}
+function wpmRingCenter(r){let x=0,y=0;for(const c of r){x+=c[0];y+=c[1];}return [x/r.length,y/r.length];}
+/* 两环对齐（V14.2 关键修复：消除权威年份切换跳变/漂移）。
+   ⚠️ 旧版把 A、B 都重采样到 48 点并旋转 B 起点 → t=1 时结果 ≠ B 原始环，
+   下一帧直接取 B 原始几何时发生跳变（拜占庭边界瞬移 7°），表现为"疆域漂移"。
+   新版：以 B 原始环为目标（点数/点序/起点都不动，保证 t=1 精确等于 B），
+   仅把 A 重采样到 B 的点数、统一绕向、旋转 A 起点对齐 B，再逐点插值。 */
+function wpmInterpRing(ra,rb,t,N){
+  // B 用原始环（去闭合尾点），绝不重采样/旋转
+  let B=rb.slice();
+  if(B.length>1&&B[0][0]===B[B.length-1][0]&&B[0][1]===B[B.length-1][1])B=B.slice(0,-1);
+  if(B.length<3)return null;
+  const n=B.length;
+  // A 重采样到 n 点
+  let A=wpmResample(ra,n);
+  if(!A)return null;
+  // 绕向与 B 一致
+  if(Math.sign(wpmRingArea(A))!==Math.sign(wpmRingArea(B)))A=A.slice().reverse();
+  // 旋转 A 起点对齐 B（试探所有相位取总距离最小）
+  let bestShift=0,bestD=1e18;
+  for(let s=0;s<n;s++){
+    let d=0;for(let i=0;i<n;i++){const ai=(i+s)%n;d+=(A[ai][0]-B[i][0])**2+(A[ai][1]-B[i][1])**2;}
+    if(d<bestD){bestD=d;bestShift=s;}
+  }
+  // t=1 精确返回 B 原始点序（闭合尾点由下游 smoothPath 处理）
+  if(t>=1)return B;
+  const out=new Array(n);
+  for(let i=0;i<n;i++){const ai=(i+bestShift)%n;out[i]=[A[ai][0]+(B[i][0]-A[ai][0])*t,A[ai][1]+(B[i][1]-A[ai][1])*t];}
+  return out;
+}
+/* 两个政权对象的环集合插值。按中心距离贪心匹配 A/B 的 paths；未匹配的环：
+   属于 A→按 A 环淡出，属于 B→按 B 环淡入（用 p.alpha 标记）。 */
+function wpmInterpPolity(pa,pb,t){
+  const N=48;
+  const A=(pa.paths||[]).map(r=>({r,c:wpmRingCenter(r)}));
+  const B=(pb.paths||[]).map(r=>({r,c:wpmRingCenter(r)}));
+  const usedB=new Set();const rings=[];
+  A.forEach(a=>{
+    let bi=-1,bd=1e18;
+    B.forEach((b,j)=>{if(usedB.has(j))return;const d=Math.hypot(a.c[0]-b.c[0],a.c[1]-b.c[1]);if(d<bd){bd=d;bi=j;}});
+    // 中心距离阈值 30°：过远视为不同政权扩张/收缩，改为淡入淡出而非硬连
+    if(bi>=0&&bd<30){usedB.add(bi);const ir=wpmInterpRing(a.r,B[bi].r,t,N);if(ir)rings.push({r:ir,a:1});}
+    else rings.push({r:a.r,a:1-t});
+  });
+  B.forEach((b,j)=>{if(!usedB.has(j))rings.push({r:b.r,a:t});});
+  const cn=/[一-龥]/.test(pb.cn)?pb.cn:pa.cn;
+  const tint=(t<0.5?pa.tint:pb.tint)||'#a99a72';
+  return {cn,tint,a:pa.a*(1-t)+pb.a*t,rings,alpha:1};
+}
+/* V14.3：世界政区"稳定模式"开关。
+   用户反馈连续形变拖动时涂色持续移动 = 疆域漂移感突出。默认稳定：世界政区取最近权威年份相，
+   仅跨权威年份切换（中国疆域仍 208 相位连续形变，主线体验不变）。
+   若想恢复逐点形变，把 WORLD_MORPH 设 true（保留 V12 全部形变代码）。 */
+let WORLD_MORPH=false;
+function wpolStable(y){
+  const list=worldPolitiesForYear(y);
+  const wrapped=(list||[]).map(p=>({cn:p.cn,tint:p.tint,a:p.a,alpha:1,
+    rings:(p.paths||[]).map(r=>({r,a:1}))}));
+  return {list:wrapped,t:1,span:'stable@'+WPOL_YR};
+}
+function worldPolitiesMorph(y){
+  if(!WORLD_MORPH)return wpolStable(y);
+  const wp=JS.wpol;if(!wp||!wp.years){return {list:worldPolitiesForYear(y),t:1,span:'single'};}
+  const ck='m'+Math.round(y*10);
+  if(WPM_CACHE.has(ck))return WPM_CACHE.get(ck);
+  const years=wp.years; // [[yr,key],...] 升序
+  // 定位 y 落在 years[i][0] .. years[i+1][0] 之间
+  let i=0;while(i<years.length-1&&years[i+1][0]<=y)i++;
+  const y0=years[i][0],k0=years[i][1];
+  if(i>=years.length-1){ // 末端之后：取最后一相
+    WPOL_YR=y0;WPOL_KEY=k0;
+    const res={list:wp[k0]||[],t:1,span:'end'};WPM_CACHE.set(ck,res);return res;
+  }
+  const y1=years[i+1][0],k1=years[i+1][1];
+  const t=Math.max(0,Math.min(1,(y-y0)/(y1-y0)));
+  const A=wp[k0]||[],B=wp[k1]||[];
+  const bmap=new Map();B.forEach(p=>bmap.set(p.cn,p));
+  const amap=new Map();A.forEach(p=>amap.set(p.cn,p));
+  const list=[];
+  A.forEach(pa=>{
+    const pb=bmap.get(pa.cn);
+    if(pb){list.push(wpmInterpPolity(pa,pb,t));}
+    else{ // 仅 A 有：淡出
+      list.push({cn:pa.cn,tint:pa.tint,a:pa.a,alpha:1-t,
+        rings:(pa.paths||[]).map(r=>({r,a:1}))});
+    }
+  });
+  B.forEach(pb=>{if(!amap.has(pb.cn)){
+    list.push({cn:pb.cn,tint:pb.tint,a:pb.a,alpha:t,
+      rings:(pb.paths||[]).map(r=>({r,a:1}))});
+  }});
+  WPOL_YR=t<0.5?y0:y1;WPOL_KEY=t<0.5?k0:k1;
+  const res={list,t,span:y0+'~'+y1};
+  if(WPM_CACHE.size>400)WPM_CACHE.clear();
+  WPM_CACHE.set(ck,res);
+  return res;
+}
+/* 矢量陆地（Natural Earth）：宣纸填色 + 墨晕双描边海岸——与中国图海岸技法一致，恒显 */
+function wlandSvg(){
+  let h='';
+  WLD.land.forEach(r=>{h+=`<path d="${smoothPath(r)}" fill="url(#wLandG)" fill-opacity=".7"/>`;});
+  WLD.land.forEach(r=>{h+=`<path d="${smoothPath(r)}" fill="none" stroke="rgba(122,104,80,.25)" stroke-width="${sw(2.6)}" stroke-linejoin="round"/>`;});
+  WLD.land.forEach(r=>{h+=`<path d="${smoothPath(r)}" fill="none" stroke="#93835e" stroke-width="${sw(.85)}" stroke-linejoin="round"/>`;});
+  return h;
+}
+function showAnchor(i){
+  const a=WLD.anchors[i];if(!a)return;
+  const era=WLD.eras[a.e]||{n:''};
+  const ci=firstCnEraFor(a.e);
+  const card=$('siteCard');
+  card.innerHTML=`<span class="sclose" title="关闭">✕</span><h4>${esc(a.n)}</h4>
+    <div class="where">${esc(era.n)}${a.u?' · '+esc(a.u):''}${ci>=0?' · 约当中国'+esc(JS.eras[ci].name):''}</div>
+    <p style="font-size:12.5px;color:var(--ink2);margin:0 0 6px">${esc(a.d)}</p>
+    <div class="hint">经纬 ${a.c[0]}°, ${a.c[1]}° · 资料据 Natural Earth / NASA / 江山时序</div>`;
+  card.classList.add('show');
+  document.querySelector('#siteCard .sclose').onclick=()=>card.classList.remove('show');
+}
+function doSearch(q){
+  q=q.trim().toLowerCase();const box=$('results');
+  if(!q){box.classList.remove('show');box.innerHTML='';return;}
+  const eraIdx={};JS.eras.forEach((e,i)=>eraIdx[e.key]=i);
+  const idx=[
+   ...JS.eras.map((e,i)=>({type:'朝代',id:'e'+i,title:e.name,text:e.name+' '+(e.regions||[]).map(r=>r.name).join(' ')})),
+   ...Object.entries(JS.settlements).map(([k,s])=>({type:'城池',id:k,title:k,text:k+' '+(s.modern||'')+' '+(s.eras||[]).map(e=>e.remark).join(' ')})),
+   ...KN.map((k,i)=>({type:'知识点',id:'k'+i,title:k.title,text:k.title+' '+k.points.join('')})),
+   ...(JS.pitfalls||[]).map((p,i)=>({type:'易错',id:'p'+i,title:p.q,text:p.q+' '+p.a})),
+   ...Object.entries(JS.events||{}).flatMap(([k,list])=>list.map((v,i)=>({type:'大事',id:'ev'+eraIdx[k]+'_'+i,title:(v.y<0?'前'+(-v.y):v.y)+'年 '+v.t.slice(0,16),text:v.t}))),
+   ...(JS.cloze||[]).map((c,i)=>({type:'引文',id:'c'+i,title:c.a,text:c.q+' '+c.opts.join(' ')})),
+   ...((JS.world||{}).anchors||[]).map((a,i)=>({type:'世界',id:'w'+i,title:a.n,text:a.n+' '+a.d+' '+a.u})),
+   ...(WLD.eras||[]).flatMap((e,i)=>(e.events||[]).map((v,k)=>({type:'世界',id:'we'+i+'_'+k,title:v.w+' '+v.t.slice(0,12),text:v.t})))
+  ];
+  const hits=idx.filter(x=>x.text.toLowerCase().includes(q)).slice(0,30);
+  box.innerHTML=hits.length?hits.map(h=>`<div class="ritem" data-t="${h.type}" data-id="${h.id}"><span class="tag">${h.type}</span><span class="txt"><b>${esc(h.title)}</b>　${esc(h.text.replace(/<[^>]+>/g,'').slice(0,70))}…</span></div>`).join(''):'<div class="ritem"><span class="txt">未命中，换个关键词</span></div>';
+  box.classList.add('show');
+  box.querySelectorAll('.ritem[data-t]').forEach(n=>n.onclick=()=>{
+    const t=n.dataset.t,id=n.dataset.id;
+    if(t==='朝代')setEra(+id.slice(1));
+    else if(t==='城池'){showSite(id);$('detail').scrollIntoView({behavior:'smooth',block:'center'});}
+    else if(t==='知识点'){document.querySelector(`[data-k="${id}"]`)?.scrollIntoView({behavior:'smooth',block:'center'});}
+    else if(t==='易错'){const el=$('errs').children[+id.slice(1)];if(el){el.classList.add('open');el.scrollIntoView({behavior:'smooth',block:'center'});}}
+    else if(t==='大事'){const p=id.slice(2).split('_');setEra(+p[0]);$('map').scrollIntoView({behavior:'smooth',block:'center'});}
+    else if(t==='引文'){const i=+id.slice(1);const card=document.querySelector(`#cloze .qitem[data-ci="${i}"]`);if(card){card.scrollIntoView({behavior:'smooth',block:'center'});flash2(card);}}
+    else if(t==='世界'){
+      if(id.startsWith('we')){const p=id.slice(2).split('_');const wi=+p[0];const ce=firstCnEraFor(wi);if(ce>=0)setEra(ce);$('map').scrollIntoView({behavior:'smooth',block:'center'});}
+      else{const i=+id.slice(1);const a=WLD.anchors[i];if(a){const ce=firstCnEraFor(a.e);if(ce>=0)setEra(ce);showAnchor(i);$('map').scrollIntoView({behavior:'smooth',block:'center'});}}
+    }
+    box.classList.remove('show');
+  });
+}
+function flash2(n){n.style.transition='box-shadow .3s';n.style.boxShadow='0 0 0 3px var(--cinnabar)';setTimeout(()=>{n.style.boxShadow='';},900);}
+function togglePlay(){
+  if(state.timer){clearInterval(state.timer);state.timer=null;$('play').textContent='▶ 演绎';return;}
+  /* V12 连播：沿 208 相位时间轴逐年推进（不再按 17 朝跳），疆域+世界政区连续形变。
+     步长约为全程/90，配合 setPhaseByYear 内 ≥6 年节流重绘，既不卡顿也不跳帧。 */
+  let y=state.scrubYear!=null?state.scrubYear:Math.round(((phaseFor(JS.eras[state.era]).f)+(phaseFor(JS.eras[state.era]).t))/2);
+  if(y<AXIS_Y0||y>AXIS_Y1)y=AXIS_Y0;
+  const step=Math.max(6,Math.round((AXIS_Y1-AXIS_Y0)/90));
+  state.timer=setInterval(()=>{
+    y+=step;
+    if(y>AXIS_Y1)y=AXIS_Y0;   // 到末端循环回起点
+    setPhaseByYear(y);
+  },Math.max(90,state.speed*1000/2.2));  // speed 档位 2.2s 为基准，1.2→约0.55s/帧
+  $('play').textContent='⏸ 暂停';
+}
+/* —— 江山时序式可拖动时间轴（V10.5）：朝代分段带 + 相位刻度 + 游标，拖动时疆域随相位连续变形 —— */
+let _scrub=false;
+function buildAxis(){
+  const ax=$('timeaxis');if(!ax)return;
+  const phs=JS.phases||[];if(!phs.length)return;
+  const W=Math.max(320,ax.clientWidth||874),H=46;
+  const xOf=y=>(y-AXIS_Y0)/(AXIS_Y1-AXIS_Y0)*W;
+  let h='<svg width="'+W+'" height="'+H+'" viewBox="0 0 '+W+' '+H+'">';
+  h+='<rect x="0" y="7" width="'+W+'" height="'+(H-14)+'" fill="#f3ecda"/>';
+  JS.eras.forEach((e,i)=>{
+    const ph=phaseFor(e);const a=Math.max(AXIS_Y0,ph.f),b=Math.min(AXIS_Y1,ph.t);
+    const x0=xOf(a),x1=xOf(b),segW=Math.max(1,x1-x0);
+    const on=i===state.era;
+    h+='<rect x="'+x0.toFixed(1)+'" y="7" width="'+segW.toFixed(1)+'" height="'+(H-14)+'" fill="'+(on?'rgba(158,42,43,.32)':'#eae0c4')+'" stroke="#c9b896" stroke-width="0.6"/>';
+    const cx=(x0+x1)/2;
+    if(segW>46)h+='<text x="'+cx.toFixed(1)+'" y="28" text-anchor="middle" font-size="12" fill="'+(on?'#9e2a2b':'#6b5a44')+'" font-weight="'+(on?'800':'400')+'">'+e.name+'</text>';
+    else if(segW>22)h+='<text x="'+cx.toFixed(1)+'" y="27" text-anchor="middle" font-size="9.5" fill="#6b5a44">'+e.name+'</text>';
+  });
+  phs.forEach(p=>{
+    const x=xOf(p.f);
+    h+='<line x1="'+x.toFixed(1)+'" y1="'+(H-9)+'" x2="'+x.toFixed(1)+'" y2="'+(H-3)+'" stroke="rgba(122,104,80,.45)" stroke-width="1"/>';
+  });
+  const sy=state.scrubYear==null?phaseFor(JS.eras[state.era]).f:state.scrubYear;
+  const xs=xOf(sy);
+  h+='<g id="axHandle"><line x1="'+xs.toFixed(1)+'" y1="1" x2="'+xs.toFixed(1)+'" y2="'+(H-1)+'" stroke="#9e2a2b" stroke-width="2"/>'
+    +'<circle cx="'+xs.toFixed(1)+'" cy="'+(H/2)+'" r="6.5" fill="#9e2a2b" stroke="#f4ecd8" stroke-width="1.5"/></g>';
+  h+='</svg>';
+  ax.innerHTML=h;
+}
+/* V14.9 流畅性：把同一帧内多次 renderMap 合并为一次。
+   拖动时间轴时 pointermove 可能触发几十次 setPhaseByYear，原来每次都全量重建 SVG（~58ms/次 → 卡顿）。
+   rAF 合并后每帧最多重绘一次，拖动只呈现最终状态，肉眼更顺滑。 */
+let _renderRAF=0,_renderKeep=false;
+function scheduleRenderMap(keep){
+  if(keep)_renderKeep=true;
+  if(_renderRAF)return;
+  _renderRAF=requestAnimationFrame(()=>{
+    _renderRAF=0;const k=_renderKeep;_renderKeep=false;renderMap(k);
+  });
+}
+function flushRenderMap(){   // 拖动结束/关键节点强制立即出帧
+  if(_renderRAF){cancelAnimationFrame(_renderRAF);_renderRAF=0;}
+  const k=_renderKeep;_renderKeep=false;renderMap(k);
+}
+function setPhaseByYear(y){
+  const phs=JS.phases||[];if(!phs.length)return;
+  let ph=phs.find(p=>y>=p.f&&y<=p.t);
+  if(!ph){let bd=1e18;ph=phs[0];for(const p of phs){const d=y<p.f?p.f-y:y-p.t;if(d<bd){bd=d;ph=p;}}}
+  state.scrubYear=y;
+  const ei=JS.eras.findIndex(e=>e.key===ph.k);
+  if(ei>=0&&ei!==state.era){state.era=ei;store('ht_era',''+state.era);renderDynasties();}
+  const changed=state.snap!==ph.s;
+  // V12 世界形变：年份每变化 ≥6 年即重绘（权威年份间隔约 30~100 年，6 年一帧足够丝滑且不卡）
+  const wChanged=Math.abs((state._wpolY==null?1e9:y)-state._wpolY)>=6;
+  state._wpolY=y;
+  state.snap=ph.s;
+  const era=JS.eras[state.era];
+  $('yearFromText').innerHTML=(ph.f<0?'公元前 <b>':'公元 <b>')+Math.abs(ph.f)+'</b> 年';
+  $('yearToText').innerHTML=(ph.t<0?'至 公元前 <b>':'至 公元 <b>')+Math.abs(ph.t)+'</b> 年';
+  $('dynastyTitle').textContent=era.name+'（'+(ph.f<0?'前':'')+Math.abs(ph.f)+'年疆域）';
+  /* 修复：缩放/平移的防抖重绘(_redrawT)若_pending，会在拖动中途触发 renderMap(true)，
+     与此处拖动重绘竞争、且用旧 keep 状态重建 DOM → 视图/疆域时序错位。
+     拖动时间轴时先取消该 pending 重绘，保证一次拖动只有一条确定性重绘路径。 */
+  if(_redrawT){clearTimeout(_redrawT);_redrawT=null;}
+  /* V14.9：仅"拖动时间轴"期间用 rAF 合并（每帧最多重绘一次，杜绝几十次同步重绘卡顿）；
+     其余场景（点朝代/播放/程序调用）立即同步渲染，避免后台标签页 rAF 被暂停导致画面滞后。 */
+  if(changed||wChanged){ if(_scrub)scheduleRenderMap(); else renderMap(); }
+  renderEraInfo();                   // V14：说明栏中外对照随年份实时更新（世界大事按距今排序）
+  buildAxis();                       // 游标/年份实时更新
+}
+function axisYear(ev){const ax=$('timeaxis');const r=ax.getBoundingClientRect();return Math.round(AXIS_Y0+(ev.clientX-r.left)/r.width*(AXIS_Y1-AXIS_Y0));}
+function bind(){
+  $('prev').onclick=()=>setEra(state.era-1);$('next').onclick=()=>setEra(state.era+1);$('play').onclick=togglePlay;
+  $('search').oninput=ev=>doSearch(ev.target.value);
+  /* 可拖动时间轴：按下/拖动 → 年份 → 相位（跨相位即重渲染，疆域连续变形） */
+  const ax=$('timeaxis');
+  ax.addEventListener('pointerdown',ev=>{_scrub=true;try{ax.setPointerCapture(ev.pointerId);}catch(e){}setPhaseByYear(axisYear(ev));});
+  ax.addEventListener('pointermove',ev=>{if(_scrub)setPhaseByYear(axisYear(ev));});
+  const axEnd=()=>{_scrub=false;flushRenderMap();};   // V14.9：松手补最后一帧
+  ax.addEventListener('pointerup',axEnd);
+  ax.addEventListener('pointercancel',axEnd);
+  addEventListener('resize',buildAxis);
+  $('speed').textContent=state.speed+'s';
+  $('speed').onclick=()=>{const S=[1.2,2.2,3.2];state.speed=S[(S.indexOf(state.speed)+1)%S.length];store('ht_speed',''+state.speed);$('speed').textContent=state.speed+'s';if(state.timer){togglePlay();togglePlay();}};
+  $('toTop').onclick=()=>scrollTo({top:0,behavior:'smooth'});
+  const onScroll=()=>{$('toTop').style.display=scrollY>600?'block':'none';};
+  addEventListener('scroll',onScroll,{passive:true});onScroll();
+  $('resetQuiz').onclick=()=>{state.quizAns={};store('ht_quiz','{}');renderQuiz();};
+  $('resetCloze').onclick=()=>{state.clozeAns={};store('ht_cloze','{}');renderCloze();};
+  $('nextQ').onclick=()=>{const Q=state.pinSet==='w'?PIN_W:PIN;state.qidx=(state.qidx+1)%Q.length;renderPin();};
+  $('zoomIn').onclick=()=>zoomAt(0,0,state.zoom+.3);
+  $('zoomOut').onclick=()=>zoomAt(0,0,state.zoom-.3);
+  $('resetView').onclick=()=>{state.zoom=4.97;state.pan={x:-2203,y:735};clampPan();applyView();scheduleRedraw();};
+  $('globeView').onclick=()=>{state.zoom=1;state.pan={x:0,y:0};clampPan();applyView();scheduleRedraw();};
+  addEventListener('resize',applyView);
+  bindPan();
+  document.querySelectorAll('.mapctrl button[data-layer]').forEach(b=>b.onclick=()=>{b.classList.toggle('on');renderMap(true);});
+  document.addEventListener('keydown',ev=>{
+    const tag=(ev.target.tagName||'').toLowerCase();
+    if(tag==='input'){if(ev.key==='Escape'){ev.target.value='';doSearch('');ev.target.blur();$('results').classList.remove('show');}return;}
+    if(ev.key==='ArrowLeft'){ev.preventDefault();setEra(state.era-1);}
+    else if(ev.key==='ArrowRight'){ev.preventDefault();setEra(state.era+1);}
+    else if(ev.key===' '){ev.preventDefault();togglePlay();}
+    else if(ev.key==='/'){ev.preventDefault();$('search').focus();}
+    else if(ev.key==='Escape'){const qp=$('quotePop');if(qp)qp.style.display='none';$('results').classList.remove('show');hideTip();}
+  });
+}
+/* V14.9 移动端章节导航：扫描 h2 生成横滑标签，点击平滑跳转，滚动时高亮当前章节 */
+function buildSecNav(){
+  const nav=$('secNav');if(!nav)return;
+  /* 窄屏搜索框占位文案缩短（原长文案会被截断） */
+  const s=$('search');
+  if(s&&innerWidth<=820)s.placeholder='搜索：朝代 / 城池 / 大事 / 知识点';
+  const hs=[...document.querySelectorAll('section > h2')];
+  nav.innerHTML=hs.map((h,i)=>{
+    const txt=(h.textContent||'').replace(/^[一二三四五六七八九十]+、/,'').split(/\s{2,}|\s·|\s\d/)[0].trim().slice(0,6);
+    return `<a data-i="${i}">${esc(txt)}</a>`;
+  }).join('');
+  const links=[...nav.querySelectorAll('a')];
+  links.forEach(a=>a.onclick=()=>{
+    const sec=hs[+a.dataset.i].closest('section');
+    if(sec)sec.scrollIntoView({behavior:'smooth',block:'start'});
+    links.forEach(x=>x.classList.toggle('on',x===a));
+  });
+  // 滚动高亮
+  let raf=0;
+  const spy=()=>{
+    if(raf)return; raf=requestAnimationFrame(()=>{
+      raf=0;
+      const y=innerHeight*0.28;
+      let cur=0;
+      hs.forEach((h,i)=>{if(h.getBoundingClientRect().top<=y)cur=i;});
+      links.forEach((a,i)=>a.classList.toggle('on',i===cur));
+      // 让当前项滚进可视区
+      const act=links[cur];
+      if(act&&nav.scrollWidth>nav.clientWidth){
+        const want=act.offsetLeft-nav.clientWidth/2+act.offsetWidth/2;
+        if(Math.abs(nav.scrollLeft-want)>60)nav.scrollTo({left:Math.max(0,want),behavior:'smooth'});
+      }
+    });
+  };
+  window.addEventListener('scroll',spy,{passive:true});
+}
+
+function init(){
+  renderDynasties();renderEraInfo();renderMap();renderWorldTopics();renderFilters();renderCards();renderPinSets();renderPin();
+  renderQuiz();renderErrs();renderCloFilters();renderCloze();bind();buildAxis();calibrateView();
+  buildSecNav();   /* V14.9 移动端章节导航 */
+  /* V14.9：首屏渲染完成后淡出载入提示（同步设置，避免 rAF 在后台/异常时不执行导致遮罩残留） */
+  const _boot=$('boot');
+  if(_boot){
+    _boot.classList.add('out');
+    _boot.style.opacity='0';
+    _boot.style.pointerEvents='none';
+    setTimeout(()=>{try{_boot.remove()}catch(e){}},420);
+  }
+}
+init();
+</script>
+</body>
+</html>

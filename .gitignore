@@ -1,0 +1,39 @@
+# 构建产物与大数据文件（因体积过大不入库）
+_jiangshan_data.json
+_world_polities.json
+_dl_world/
+_dl_hb/
+_hb_src/
+
+# 成品（GitHub Pages 需要，但若由构建生成可忽略）
+# index.html
+
+# 临时与验证脚本
+_check.js
+_audit_*.py
+_mobile_*.py
+_perf_*.py
+_shot*.py
+_diag_*.py
+_verify_*.py
+_locate_*.py
+_autodetect_*.py
+_inspect_eras.py
+_make_*.py
+_draw_*.py
+_compare_*.py
+_find_*.py
+_move_off_desktop.py
+*.bak*
+test_*.webp
+_*.png
+_m_*.png
+_topics_shot.png
+_v146_1100.png
+
+# 系统
+.DS_Store
+Thumbs.db
+desktop.ini
+__pycache__/
+*.pyc
