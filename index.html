@@ -2355,7 +2355,8 @@ function init(){
 }
 init();
 
-/* ===== Web版：疆域/世界政区大数据后台并行加载（首屏已秒开） ===== */
+/* ===== Web版：疆域/世界政区大数据后台加载（首屏已秒开） =====
+   多源竞速：gcore CDN（国内快）与 GitHub Pages（保底）同时拉，谁先完整返回用谁。 */
 (function loadGeo(){
   const box=document.querySelector('.mapbox');
   if(!box)return;
@@ -2363,24 +2364,40 @@ init();
   tip.className='geo-tip';
   tip.innerHTML='<span class="geo-spin"></span> 疆域数据加载中…';
   box.appendChild(tip);
-  const loadJSON=function(url){
-    return fetch(url).then(function(r){
-      if(!r.ok)throw new Error(url+' ('+r.status+')');
-      return r.json();
+  const CDN='https://gcore.jsdelivr.net/gh/tansuanna1209/history-atlas@main/';
+  const LOCAL='data/';
+  /* 单文件多源竞速：缓存新鲜度优先本地，随后 CDN；任一成功即定 */
+  const raceJSON=function(name){
+    const sources=[LOCAL+name, CDN+name];
+    return new Promise(function(resolve,reject){
+      let done=false;
+      sources.forEach(function(base,i){
+        /* 本地源立即发起；CDN 源稍延迟，避免本地快时浪费流量 */
+        setTimeout(function(){
+          if(done)return;
+          fetch(base).then(function(r){
+            if(!r.ok)throw new Error('HTTP '+r.status);
+            return r.json();
+          }).then(function(d){
+            if(!done){done=true;resolve(d);}
+          }).catch(function(e){ if(!done && i===sources.length-1)reject(e); });
+        }, i*250);
+      });
     });
   };
-  Promise.all([
-    loadJSON('data/phases.json'),
-    loadJSON('data/wpol.json')
-  ]).then(function(arr){
+  Promise.all([raceJSON('phases.json'),raceJSON('wpol.json')]).then(function(arr){
     const ph=arr[0], wp=arr[1];
     JS.phases=ph; JS.wpol=wp;
-    JS.worldBase={src:'data/world.webp',w:8192,h:4096};
+    /* 底图：本地优先，CDN 备（图片失败不影响疆域，交给 onerror 兜底） */
+    JS.worldBase={src:LOCAL+'world.webp',fallback:CDN+'world.webp',w:8192,h:4096};
     PH=Object.fromEntries(ph.map(function(p){return [p.s,p];}));
     AXIS_Y0=Math.min.apply(null,ph.map(function(p){return p.f;}));
     AXIS_Y1=Math.max.apply(null,ph.map(function(p){return p.t;}));
-    /* 保持用户当前视图与选中状态，只补齐疆域几何 */
     renderMap(); buildAxis(); calibrateView();
+    /* 底图 onerror 自动切 CDN：<image> 无 onerror 属性则手动探测一次 */
+    var img=new Image();
+    img.onerror=function(){ JS.worldBase.src=CDN+'world.webp'; renderMap(); };
+    img.src=LOCAL+'world.webp';
     if(state.journeyId){try{igniteJourney(JOURNEYS.find(function(j){return j.id===state.journeyId;}));}catch(e){}}
     tip.classList.add('gone');
     setTimeout(function(){try{tip.remove();}catch(e){}},450);
