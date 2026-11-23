@@ -68,6 +68,9 @@ header{text-align:center;margin:0 -16px 22px;padding:32px 20px 24px;position:rel
 header::after{content:"❖";position:absolute;left:50%;bottom:-13px;transform:translateX(-50%);color:var(--cinnabar);font-size:16px;background:var(--paper);padding:0 10px}
 h1{font-size:34px;margin:0 0 8px;letter-spacing:6px;font-weight:900;color:var(--cinnabar);
  text-shadow:1px 1px 0 rgba(255,255,255,.5)}
+h1 .demo{display:inline-block;vertical-align:middle;margin-left:10px;padding:3px 9px;
+ font-size:12px;letter-spacing:1px;font-weight:700;line-height:1.4;color:var(--cinnabar);
+ border:1px solid var(--cinnabar);border-radius:3px;background:rgba(158,42,43,.06)}
 .sub{color:var(--ink2);font-size:14px;letter-spacing:2px}
 .seal{display:inline-block;margin-top:10px;font-size:11px;color:var(--paper);background:var(--cinnabar);
  border-radius:3px;padding:4px 12px;letter-spacing:1px;box-shadow:2px 2px 0 rgba(158,42,43,.25)}
@@ -426,6 +429,7 @@ kbd{background:var(--paper2);border:1px solid var(--line);border-radius:3px;padd
   /* section 内边距收窄，把宽度让给地图（原 22px → 12px，地图宽 +20px） */
   section{padding:14px 12px;margin-bottom:14px;border-radius:5px}
   h1{font-size:26px;letter-spacing:2px}
+  h1 .demo{font-size:10px;margin-left:6px;padding:2px 6px}
   .sub{font-size:11.5px;letter-spacing:1px;line-height:1.7}
   .seal{font-size:10px}
   h2{font-size:17.5px;padding-left:11px}
@@ -563,8 +567,8 @@ kbd{background:var(--paper2);border:1px solid var(--line);border-radius:3px;padd
 <div class="wrap">
 <div id="boot" class="boot"><div class="boot-in"><div class="boot-seal">舆</div><div class="boot-t">载入舆图中…</div><div class="boot-s">正在解析疆域与地形数据</div></div></div>
 <header>
-  <h1>历史时空舆图</h1>
-  <div class="sub">Demo 1 · 宣纸古风 · 中外一图 · 阶段特征 · 历史行迹</div>
+  <h1>历史时空舆图<span class="demo">Demo 1</span></h1>
+  <div class="sub">宣纸古风 · 中外一图 · 阶段特征 · 历史行迹</div>
   <div class="seal">疆域数据据《中国历史地图集》· 示意非精确边界</div>
 </header>
 
