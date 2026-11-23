@@ -2363,10 +2363,13 @@ init();
   if(!box)return;
   /* 固定 commit：data 文件在此提交后未再变动，用完整 SHA 锁定，绕开 @main 分支缓存同步延迟 */
   const PIN='8bd0c91b7b';  /* 含 .gz 的 commit，jsDelivr 按 SHA 缓存稳定 */
-  const BASES=['data/',
+  /* ★ 顺序至关重要：国内 GitHub Pages 只有 ~45KB/s，必须放最后当保底；
+     快源(gcore CDN)放第一位，否则串行会先卡死在慢源上（用户报加载不出的根因）。 */
+  const BASES=[
     'https://gcore.jsdelivr.net/gh/tansuanna1105/history-atlas@'+PIN+'/',
     'https://gcore.jsdelivr.net/gh/tansuanna1105/history-atlas@main/',
-    'https://fastly.jsdelivr.net/gh/tansuanna1105/history-atlas@main/'];
+    'https://fastly.jsdelivr.net/gh/tansuanna1105/history-atlas@main/',
+    'data/'];
   const tip=document.createElement('div');
   tip.className='geo-tip';
   box.appendChild(tip);
@@ -2380,8 +2383,17 @@ init();
     var ds=new DecompressionStream('gzip');
     return new Response(buf.stream().pipeThrough(ds)).text();
   };
-  /* 串行尝试各源：单源下载已占满窄带宽，多源并发只会互相瓜分、越抢越慢。
-     第一个成功即返回；失败/HTTP错误才切下一源。 */
+  /* 串行尝试各源 + 单源超时：窄带宽下并发只会互相瓜分，故串行；
+     但必须给每源设超时并 abort 底层连接，否则卡在慢源上永远轮不到下一个（★用户报加载不出的根因）。 */
+  const TRY_TIMEOUT=35000;  /* 单源 35s 上限 */
+  /* 带 AbortController 的 fetch：超时真正掐断连接，不占着带宽 */
+  const fetchTimed=function(url,ms){
+    var ctrl=new AbortController();
+    var timer=setTimeout(function(){ctrl.abort();},ms);
+    return fetch(url,{cache:'force-cache',signal:ctrl.signal}).then(function(r){
+      clearTimeout(timer); return r;
+    },function(e){clearTimeout(timer);throw e;});
+  };
   const trySources=function(task){
     return new Promise(function(resolve,reject){
       var i=0, lastErr=null;
@@ -2393,7 +2405,7 @@ init();
       next();
     });
   };
-  /* 下载 JSON：优先 .gz（体积小 3~4 倍），逐源尝试 */
+  /* 下载 JSON：优先 .gz（体积小 3~4 倍），同源自 .gz 失败再试 .json；逐源尝试 */
   const race=function(name,validator,isImg){
     if(isImg){
       return trySources(function(base){
@@ -2405,18 +2417,24 @@ init();
         });
       });
     }
-    /* 每个源内部：先试 .gz，失败再试原始 .json */
     return trySources(function(base){
       const getJSON=function(url,asGz){
-        return fetch(url,{cache:'force-cache'}).then(function(r){
-          if(!r.ok)throw new Error('HTTP '+r.status);
+        return fetchTimed(url,TRY_TIMEOUT).then(function(r){
+          if(!r.ok){var e=new Error('HTTP '+r.status);e.gz404=(asGz&&r.status===404);throw e;}
           if(asGz&&supportsGz)return gunzip(r.body).then(function(t){return JSON.parse(t);});
           return r.json();
         });
       };
-      var chain=supportsGz
-        ? getJSON(base+name+'.gz',true).catch(function(){return getJSON(base+name,false);})
-        : getJSON(base+name,false);
+      var chain;
+      if(supportsGz){
+        /* 仅 gz 明确 404 才回退同源原始 json；超时/网络错误直接换下一源（json 更大，回退只会更慢） */
+        chain=getJSON(base+name+'.gz',true).catch(function(e){
+          if(e&&e.gz404)return getJSON(base+name,false);
+          throw e;
+        });
+      }else{
+        chain=getJSON(base+name,false);
+      }
       return chain.then(function(d){
         if(!validator(d))throw new Error('bad payload');
         return d;
