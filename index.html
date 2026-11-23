@@ -2366,9 +2366,9 @@ init();
   /* ★ 顺序至关重要：国内 GitHub Pages 只有 ~45KB/s，必须放最后当保底；
      快源(gcore CDN)放第一位，否则串行会先卡死在慢源上（用户报加载不出的根因）。 */
   const BASES=[
-    'https://gcore.jsdelivr.net/gh/tansuanna1105/history-atlas@'+PIN+'/',
-    'https://gcore.jsdelivr.net/gh/tansuanna1105/history-atlas@main/',
-    'https://fastly.jsdelivr.net/gh/tansuanna1105/history-atlas@main/',
+    'https://gcore.jsdelivr.net/gh/tansuanna1105/history-atlas@'+PIN+'/data/',
+    'https://gcore.jsdelivr.net/gh/tansuanna1105/history-atlas@main/data/',
+    'https://fastly.jsdelivr.net/gh/tansuanna1105/history-atlas@main/data/',
     'data/'];
   const tip=document.createElement('div');
   tip.className='geo-tip';
@@ -2379,9 +2379,11 @@ init();
 
   /* gzip 解压（浏览器原生，省 72% 流量；不支持则回退原始 JSON） */
   const supportsGz=(typeof DecompressionStream!=='undefined');
-  const gunzip=function(buf){
+  /* 用 arrayBuffer 解压，不依赖 r.body（某些响应 body 为 null，导致 .stream is not a function） */
+  const gunzip=function(ab){
     var ds=new DecompressionStream('gzip');
-    return new Response(buf.stream().pipeThrough(ds)).text();
+    var blob=new Blob([ab]);
+    return new Response(blob.stream().pipeThrough(ds)).text();
   };
   /* 串行尝试各源 + 单源超时：窄带宽下并发只会互相瓜分，故串行；
      但必须给每源设超时并 abort 底层连接，否则卡在慢源上永远轮不到下一个（★用户报加载不出的根因）。 */
@@ -2421,7 +2423,7 @@ init();
       const getJSON=function(url,asGz){
         return fetchTimed(url,TRY_TIMEOUT).then(function(r){
           if(!r.ok){var e=new Error('HTTP '+r.status);e.gz404=(asGz&&r.status===404);throw e;}
-          if(asGz&&supportsGz)return gunzip(r.body).then(function(t){return JSON.parse(t);});
+          if(asGz&&supportsGz)return r.arrayBuffer().then(function(ab){return gunzip(ab);}).then(function(t){return JSON.parse(t);});
           return r.json();
         });
       };
