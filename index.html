@@ -1197,7 +1197,7 @@ function clearActive(){
    推导：X = C + T + z*(q*k - C)，令同一 q 在 z' 下仍映射到 X 解得 T' = T*(z'/z) + (X-C)*(1-z'/z)。 */
 function zoomAt(fx,fy,z1){
   const z0=state.zoom;
-  z1=Math.min(8,Math.max(1,z1));
+  z1=Math.min(16,Math.max(1,z1));
   if(z1===z0)return;
   const s=z1/z0;
   state.pan.x=state.pan.x*s+fx*(1-s);
@@ -1255,7 +1255,7 @@ function bindPan(){
     const d=Math.max(-.45,Math.min(.45,-ev.deltaY*.0022));
     if(!d)return;
     const [fx,fy]=viewAnchor(ev,box);
-    zoomAt(fx,fy,state.zoom+d);
+    zoomAt(fx,fy,state.zoom*(1+d));
   },{passive:false});
 }
 function tip(html,ev){const t=$('tipEl')||(()=>{const d=document.createElement('div');d.id='tipEl';d.style.cssText='position:fixed;display:none;z-index:99;pointer-events:none;background:#3b2d20;color:#f4ecd8;border-radius:3px;padding:5px 9px;font-size:11px;box-shadow:0 4px 12px rgba(0,0,0,.3)';document.body.appendChild(d);return d;})();t.innerHTML=html;t.style.display='block';moveTip(ev);}
@@ -1963,8 +1963,8 @@ function bind(){
       bm.style.display=past?'block':'none';
     },{passive:true});
   }
-  $('zoomIn').onclick=()=>zoomAt(0,0,state.zoom+.3);
-  $('zoomOut').onclick=()=>zoomAt(0,0,state.zoom-.3);
+  $('zoomIn').onclick=()=>zoomAt(0,0,state.zoom*1.4);
+  $('zoomOut').onclick=()=>zoomAt(0,0,state.zoom/1.4);
   $('resetView').onclick=()=>{state.zoom=4.97;state.pan={x:-2203,y:735};clampPan();applyView();scheduleRedraw();};
   $('globeView').onclick=()=>{state.zoom=1;state.pan={x:0,y:0};clampPan();applyView();scheduleRedraw();};
   addEventListener('resize',applyView);
@@ -2222,7 +2222,7 @@ function animateJourney(){
    igniteJourney：点燃路线（描线动画）→ 按 bbox 定位 → 平滑滚到地图
    原则：只加临时元素（脉冲环），动画结束即清，避免地图臃肿。 */
 function centerOn(vx, vy, zoom){
-  const z=Math.min(8,Math.max(1,zoom));
+  const z=Math.min(16,Math.max(1,zoom));
   state.zoom=z;
   state.pan.x=-(vx-760)*z;
   state.pan.y=-(vy-420)*z;
