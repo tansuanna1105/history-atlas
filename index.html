@@ -209,10 +209,10 @@ h2 .badge{font-size:11px;color:var(--ink2);border:1px solid var(--line);border-r
 @keyframes ants{to{stroke-dashoffset:-60}}
 .wroute.flow{animation:ants 1.15s linear infinite}
 .cor-flow{animation:ants 1.3s linear infinite}
-.river-path{fill:none;stroke:var(--azure);opacity:.55}
+.river-path{fill:none;stroke:var(--azure);opacity:.62;stroke-linecap:round}
 .lake-poly{fill:#5f87ab;fill-opacity:.3;stroke:#48708f;pointer-events:none}
 .landmark{fill:var(--ink2);opacity:.75;paint-order:stroke;stroke:var(--paper);stroke-width:2px;pointer-events:none}
-.cor-label{font-weight:700;paint-order:stroke;stroke:var(--paper);stroke-width:2.5px;pointer-events:none;opacity:.9}
+.cor-label{font-weight:700;paint-order:stroke;stroke:var(--paper);stroke-width:2.6px;pointer-events:none;opacity:.92}
 .mapbox::before{content:"";position:absolute;inset:5px;border:1px solid rgba(122,104,80,.3);border-radius:3px;pointer-events:none;z-index:6}
 .wa-dot{cursor:pointer}.wa-dot .cap-core{transition:transform .2s;transform-box:fill-box;transform-origin:center}
 /* V14.1 修复：勿在此设 font-size！CSS 固定值会覆盖内联 font-size="fz(10)"，
@@ -704,6 +704,8 @@ const state={era:Math.min(Math.max(+store('ht_era')||0,0),JS.eras.length-1),time
 
 /* 统一舆图：全球等距圆柱投影（360°→1520px；90°N→y40；中国与世界同图同坐标系） */
 const PPD=1520/360;
+/* 放大上限：16→32（V15.7）。高倍下矢量边界/标注仍锐利，地形底图自动淡出避免马赛克。 */
+const MAX_ZOOM=32;
 function proj(lng,lat){return [(lng+180)*PPD,40+(90-lat)*PPD];}
 function P(ring){return ring.map(c=>proj(c[0],c[1]).map(v=>Math.round(v*100)/100).join(',')).join(' ');}
 function D(seg){return 'M'+seg.map(c=>proj(c[0],c[1]).map(v=>Math.round(v*100)/100).join(',')).join('L');}
@@ -717,7 +719,9 @@ function labelPlaque(tx,ty,txt,fsN,anchor,wFac){
   const hN=fsN*1.32;
   const x=anchor==='middle'?tx-wN/2:tx-pad;
   const y=ty-fsN*1.0-pad*0.35;
-  return `<g filter="url(#lblSoft)"><rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${wN.toFixed(1)}" height="${hN.toFixed(1)}" rx="${(hN*0.45).toFixed(1)}" fill="#f7f1e0" fill-opacity=".85"/></g>`;
+  /* V15.7：柔化底板保留（去尖刺白斑），外加一道锐利细边框——放大后标注更精致、不糊成一团 */
+  const geo=`x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${wN.toFixed(1)}" height="${hN.toFixed(1)}" rx="${(hN*0.45).toFixed(1)}"`;
+  return `<g><rect ${geo} fill="#f8f2e2" fill-opacity=".92" filter="url(#lblSoft)"/><rect ${geo} fill="none" stroke="rgba(122,104,80,.20)" stroke-width="${sw(.5)}"/></g>`;
 }
 /* 环 → SVG path：直段 + 顶点 Q 贝塞尔圆角（借江山时序 smoothRingToSvgPath，GPL 已授权照搬）。
    阈值按屏幕像素恒定换算（u=1/(zoom*k)）：低倍时数据已密、边缘短于阈值不圆润；
@@ -751,6 +755,13 @@ function smoothPath(ring){
     else out+='L'+sx[next].toFixed(2)+' '+sy[next].toFixed(2);
   }
   return out+'Z';
+}
+/* V15.7：朝代主色 ↔ 纸色/深褐混合，给疆域一层柔和明暗过渡（避免大块死色） */
+function mixHex(hex,to,t){
+  const a=parseInt(String(hex||'#9e2a2b').replace('#',''),16)||0;
+  const b=parseInt(String(to).replace('#',''),16)||0;
+  const c=sh=>Math.round(((a>>sh)&255)*(1-t)+((b>>sh)&255)*t);
+  return `rgb(${c(16)},${c(8)},${c(0)})`;
 }
 /* 缩放反比缩放：屏幕上线宽/字号恒定 */
 function sw(w){return (w/state.zoom).toFixed(2);}
@@ -802,11 +813,14 @@ function politySvg(polities,tint){
       }
       return;
     }
-    const hs='rgba(59,45,32,.12)';
-    const hw=sw(3.8);
+    const hs='rgba(107,90,68,.15)';
+    const hw=sw(4.2);
     p.paths.forEach(pp=>{h+=`<path d="${smoothPath(pp[0])}" fill="none" stroke="${hs}" stroke-width="${hw}" stroke-linejoin="round"/>`;});
     p.paths.forEach(pp=>{
-      h+=`<path class="region-path" data-r="${esc(p.name)}" d="${smoothPath(pp[0])}" fill="${col}" fill-opacity="${p.role==='main'?.26:.24}" stroke="rgba(59,45,32,${p.role==='main'?.22:.19})" stroke-width="${sw(p.role==='main'?.8:.7)}"/>`;
+      /* V15.7：本朝疆域改用朝代色渐变（纸色→主色→深褐），告别大块平涂；其余政权保持实色 */
+      const fill=p.role==='main'?'url(#landWash)':col;
+      const op=p.role==='main'?1:.23;
+      h+=`<path class="region-path" data-r="${esc(p.name)}" d="${smoothPath(pp[0])}" fill="${fill}" fill-opacity="${op}" stroke="rgba(74,58,42,${p.role==='main'?.30:.22})" stroke-width="${sw(p.role==='main'?.85:.7)}" stroke-linejoin="round"/>`;
     });
     const best=bigRing(p.paths);
     if(best&&best.length>6){
@@ -904,14 +918,19 @@ function renderMap(keep){
   /* 只用 polities（政权边界互斥不重叠）；regions 行政区划与 polities 重叠，
      若加入会在 evenodd 下偶数次抵消→中国内部错误露出世界政区色块（深紫脏块）。 */
   (shape.polities||[]).filter(p=>p.role!=='neighbor').forEach(addOwn);
-  h+=`<defs><linearGradient id="cSea" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f2ebd8"/><stop offset="1" stop-color="#ebe5d0"/></linearGradient>
-  <pattern id="cWave" width="60" height="20" patternUnits="userSpaceOnUse"><path d="M0,10 q10,-7 20,0 t20,0 t20,0" fill="none" stroke="#7d97a8" stroke-width="1" opacity=".05"/></pattern><linearGradient id="wLandG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e7d9ba"/><stop offset="1" stop-color="#dccd9f"/></linearGradient>
+  h+=`<defs><linearGradient id="cSea" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f6f0e1"/><stop offset=".52" stop-color="#f0e9d5"/><stop offset="1" stop-color="#e8e0c8"/></linearGradient>
+  <pattern id="cWave" width="48" height="16" patternUnits="userSpaceOnUse"><path d="M0,8 q8,-5 16,0 t16,0 t16,0" fill="none" stroke="#7d97a8" stroke-width=".85" opacity=".085"/></pattern>
+  <linearGradient id="landWash" x1="0" y1="0" x2=".25" y2="1"><stop offset="0" stop-color="${mixHex(era.tint,'f4ecd8',.62)}" stop-opacity=".5"/><stop offset=".55" stop-color="${era.tint}" stop-opacity=".3"/><stop offset="1" stop-color="${mixHex(era.tint,'6b4a3a',.25)}" stop-opacity=".34"/></linearGradient>
+  <linearGradient id="wLandG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e7d9ba"/><stop offset="1" stop-color="#dccd9f"/></linearGradient>
   <filter id="lblSoft" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="${(1.25/(state.zoom*svgK())).toFixed(3)}"/></filter>
   <clipPath id="wclip"><path d="M0,0 H${W} V${H} H0 Z ${_ownPaths}" clip-rule="evenodd"/></clipPath></defs>`;
   h+=`<rect width="${W}" height="${H}" fill="url(#cSea)"/>`;
   h+=wlandSvg();
   if(isOn('base')&&JS.worldBase){
-    h+=`<image href="${JS.worldBase.src}" x="0" y="40" width="1520" height="760" opacity=".9" preserveAspectRatio="none" pointer-events="none"/>`;
+    /* V15.7：底图原生 8192px，32× 时需放大约 6 倍会发糊；8× 起渐淡，
+       让矢量河流/边界与标注主导画面，避免高倍下的"马赛克地形"。 */
+    const baseOp=(state.zoom<=8?.9:Math.max(.52,.9-(state.zoom-8)*.019)).toFixed(2);
+    h+=`<image href="${JS.worldBase.src}" x="0" y="40" width="1520" height="760" opacity="${baseOp}" preserveAspectRatio="none" pointer-events="none" style="filter:sepia(.2) saturate(.88) contrast(.94)"/>`;
   }
   /* 世界政区层（V11）：historical-basemaps 权威边界 40 相位，随中国时间轴年份联动取最近权威相；
      教材相关政权中文名+专属色，其余中性色；边界套 smoothPath（与中国疆域同款平滑）；
@@ -937,7 +956,7 @@ function renderMap(keep){
         let _d='';
         p.rings.forEach(({r})=>{const d=smoothPath(r);if(d)_d+=d;});
         if(!_d)return;
-        h+=`<path class="wshape" data-cn="${esc(p.cn)}" d="${_d}" fill="${p.tint}" fill-opacity="${(base*alpha).toFixed(3)}" stroke="rgba(59,45,32,${((cn?.38:.25)*alpha).toFixed(3)})" stroke-width="${sw(cn?.7:.45)}"/>`;
+        h+=`<path class="wshape" data-cn="${esc(p.cn)}" d="${_d}" fill="${p.tint}" fill-opacity="${(base*alpha).toFixed(3)}" stroke="rgba(74,58,42,${((cn?.34:.22)*alpha).toFixed(3)})" stroke-width="${sw(cn?.68:.45)}" stroke-linejoin="round"/>`;
       });
       h+='</g>';
       // 标签在 clipPath 组外渲染：避免滤镜+裁剪叠加导致底板发黑
@@ -961,8 +980,8 @@ function renderMap(keep){
     }
   }
   h+=`<rect width="${W}" height="${H}" fill="url(#cWave)"/>`;
-  for(let lng=-180;lng<=180;lng+=20){const x=proj(lng,0)[0];h+=`<line x1="${x}" y1="0" x2="${x}" y2="${H}" stroke="#d9c8a6" stroke-width="${sw(.5)}" stroke-dasharray="${sw(3)},${sw(6)}"/>`;}
-  for(let lat=-40;lat<=90;lat+=10){const y=proj(0,lat)[1];if(y<0||y>H)continue;h+=`<line x1="0" y1="${y}" x2="${W}" y2="${y}" stroke="#d9c8a6" stroke-width="${sw(.5)}" stroke-dasharray="${sw(3)},${sw(6)}"/>`;}
+  for(let lng=-180;lng<=180;lng+=20){const x=proj(lng,0)[0];h+=`<line x1="${x}" y1="0" x2="${x}" y2="${H}" stroke="rgba(122,104,80,.28)" stroke-width="${sw(.42)}" stroke-dasharray="${sw(2)},${sw(7)}"/>`;}
+  for(let lat=-40;lat<=90;lat+=10){const y=proj(0,lat)[1];if(y<0||y>H)continue;h+=`<line x1="0" y1="${y}" x2="${W}" y2="${y}" stroke="rgba(122,104,80,.28)" stroke-width="${sw(.42)}" stroke-dasharray="${sw(2)},${sw(7)}"/>`;}
   if(isOn('water'))h+=riverSvg()+lakeSvg(era);
   if(isOn('polities'))h+=politySvg(shape.polities,era.tint);
   if(isOn('regions')){
@@ -970,7 +989,7 @@ function renderMap(keep){
     (shape.regions||[]).forEach((r,i)=>{
       const color=era.tint||'#9e2a2b';
       (r.paths||[]).forEach(p=>{
-        h+=`<path class="region-path" data-r="${esc(r.name)}" d="${smoothPath(p[0])}" fill="${color}" fill-opacity="${.20+((i%3)*.035)}" stroke="rgba(59,45,32,.18)" stroke-width="${sw(.6)}"/>`;
+        h+=`<path class="region-path" data-r="${esc(r.name)}" d="${smoothPath(p[0])}" fill="${color}" fill-opacity="${.18+((i%3)*.035)}" stroke="rgba(107,90,68,.22)" stroke-width="${sw(.55)}" stroke-linejoin="round"/>`;
       });
       if(near&&i<16){
         const best=bigRing(r.paths);
@@ -1225,7 +1244,7 @@ function clearActive(){
    推导：X = C + T + z*(q*k - C)，令同一 q 在 z' 下仍映射到 X 解得 T' = T*(z'/z) + (X-C)*(1-z'/z)。 */
 function zoomAt(fx,fy,z1){
   const z0=state.zoom;
-  z1=Math.min(16,Math.max(1,z1));
+  z1=Math.min(MAX_ZOOM,Math.max(1,z1));
   if(z1===z0)return;
   const s=z1/z0;
   state.pan.x=state.pan.x*s+fx*(1-s);
@@ -2250,7 +2269,7 @@ function animateJourney(){
    igniteJourney：点燃路线（描线动画）→ 按 bbox 定位 → 平滑滚到地图
    原则：只加临时元素（脉冲环），动画结束即清，避免地图臃肿。 */
 function centerOn(vx, vy, zoom){
-  const z=Math.min(16,Math.max(1,zoom));
+  const z=Math.min(MAX_ZOOM,Math.max(1,zoom));
   state.zoom=z;
   state.pan.x=-(vx-760)*z;
   state.pan.y=-(vy-420)*z;
