@@ -74,6 +74,19 @@ h1 .demo{display:inline-block;vertical-align:middle;margin-left:10px;padding:3px
 .sub{color:var(--ink2);font-size:14px;letter-spacing:2px}
 .seal{display:inline-block;margin-top:10px;font-size:11px;color:var(--paper);background:var(--cinnabar);
  border-radius:3px;padding:4px 12px;letter-spacing:1px;box-shadow:2px 2px 0 rgba(158,42,43,.25)}
+.tbtn.dl{color:var(--cinnabar);border-color:var(--cinnabar)}
+.dl-mask{position:fixed;inset:0;z-index:200;background:rgba(59,45,32,.42);display:flex;align-items:center;justify-content:center;padding:20px}
+.dl-mask[hidden]{display:none}
+.dl-box{position:relative;background:#fdf8ec;border:1px solid var(--line);border-top:3px solid var(--cinnabar);
+ border-radius:8px;padding:22px 26px;max-width:470px;width:100%;box-shadow:0 12px 40px rgba(60,40,20,.28)}
+.dl-box h3{margin:0 0 10px;font-size:18px;color:var(--cinnabar);font-weight:800;letter-spacing:1px}
+.dl-box p{margin:0 0 10px;font-size:13px;line-height:1.75;color:var(--ink2)}
+.dl-x{position:absolute;right:10px;top:6px;background:none;border:0;font-size:22px;line-height:1;color:var(--ink2);cursor:pointer}
+.dl-size{display:inline-block;margin:2px 0 16px;padding:4px 10px;border:1px solid var(--line);border-radius:3px;font-size:11px;color:var(--dim)}
+.dl-actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.dl-primary{display:inline-block;background:var(--cinnabar);color:var(--paper);padding:9px 17px;border-radius:4px;text-decoration:none;font-size:14px}
+.dl-alt{display:inline-block;border:1px solid var(--cinnabar);color:var(--cinnabar);padding:8px 14px;border-radius:4px;text-decoration:none;font-size:12px}
+.dl-hint{margin-top:14px!important;font-size:11px!important;color:var(--dim)!important}
 section{background:linear-gradient(160deg,rgba(255,252,244,.85),rgba(240,231,210,.8));border:1px solid var(--line);
  border-radius:6px;padding:18px 22px;margin-bottom:20px;box-shadow:var(--shadow);position:relative}
 section::before{content:"";position:absolute;top:5px;left:5px;right:5px;bottom:5px;border:1px solid rgba(201,184,150,.4);pointer-events:none;border-radius:3px}
@@ -578,6 +591,7 @@ kbd{background:var(--paper2);border:1px solid var(--line);border-radius:3px;padd
   <button class="tbtn" id="zoomOut">－ 缩小</button>
   <button class="tbtn" id="resetView">复位·中国</button>
   <button class="tbtn" id="globeView">🌐 全球</button>
+  <!--DL_BTN_START--><button class="tbtn dl" id="dlOpen" title="下载离线版，断网也能用">↓ 离线版</button><!--DL_BTN_END-->
 </div>
 <div class="results" id="results"></div>
 <nav class="secnav" id="secNav" aria-label="章节导航"></nav>
@@ -2481,5 +2495,27 @@ init();
 })();
 
 </script>
+<!--DL_MODAL_START-->
+<div class="dl-mask" id="dlMask" hidden>
+ <div class="dl-box" role="dialog" aria-modal="true" aria-labelledby="dlTitle">
+  <button class="dl-x" id="dlClose" aria-label="关闭">×</button>
+  <h3 id="dlTitle">下载离线版</h3>
+  <p>整个项目打包成单个 HTML 文件。下载后双击打开即可使用，<b>不需要网络</b>：地图底图、疆域时间轴、城池沿革、历史行迹、专题知识库全部保留。</p>
+  <div class="dl-size">单文件 · 约 5 MB · 支持 Edge / Chrome / 新版 Firefox</div>
+  <div class="dl-actions">
+   <a class="dl-primary" id="dlMain" href="offline.html" download="历史时空舆图_离线版.html">下载离线版</a>
+   <a class="dl-alt" id="dlCdn" href="https://gcore.jsdelivr.net/gh/tansuanna1105/history-atlas@main/offline.html" target="_blank" rel="noopener">CDN 加速</a>
+  </div>
+  <p class="dl-hint">若点击后直接打开页面，请右键选择「另存为」保存文件。</p>
+ </div>
+</div>
+<script>
+(function(){var b=document.getElementById('dlOpen'),m=document.getElementById('dlMask'),x=document.getElementById('dlClose');
+ if(b&&m){b.onclick=function(){m.hidden=false;};x.onclick=function(){m.hidden=true;};
+ m.onclick=function(e){if(e.target===m)m.hidden=true;};
+ document.addEventListener('keydown',function(e){if(e.key==='Escape')m.hidden=true;});}
+})();
+</script>
+<!--DL_MODAL_END-->
 </body>
 </html>
