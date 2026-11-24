@@ -84,8 +84,9 @@ h1 .demo{display:inline-block;vertical-align:middle;margin-left:10px;padding:3px
 .dl-x{position:absolute;right:10px;top:6px;background:none;border:0;font-size:22px;line-height:1;color:var(--ink2);cursor:pointer}
 .dl-size{display:inline-block;margin:2px 0 16px;padding:4px 10px;border:1px solid var(--line);border-radius:3px;font-size:11px;color:var(--dim)}
 .dl-actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-.dl-primary{display:inline-block;background:var(--cinnabar);color:var(--paper);padding:9px 17px;border-radius:4px;text-decoration:none;font-size:14px}
-.dl-alt{display:inline-block;border:1px solid var(--cinnabar);color:var(--cinnabar);padding:8px 14px;border-radius:4px;text-decoration:none;font-size:12px}
+.dl-primary{display:inline-block;background:var(--cinnabar);color:var(--paper);padding:9px 17px;border:0;border-radius:4px;text-decoration:none;font-size:14px;font-family:inherit;line-height:1.4;cursor:pointer}
+.dl-primary:disabled,.dl-alt:disabled{opacity:.6;cursor:wait}
+.dl-alt{display:inline-block;border:1px solid var(--cinnabar);color:var(--cinnabar);padding:8px 14px;border-radius:4px;text-decoration:none;font-size:12px;font-family:inherit;line-height:1.4;cursor:pointer;background:none}
 .dl-hint{margin-top:14px!important;font-size:11px!important;color:var(--dim)!important}
 section{background:linear-gradient(160deg,rgba(255,252,244,.85),rgba(240,231,210,.8));border:1px solid var(--line);
  border-radius:6px;padding:18px 22px;margin-bottom:20px;box-shadow:var(--shadow);position:relative}
@@ -2504,16 +2505,48 @@ init();
   <div class="dl-size">单文件 · 约 5 MB · 支持 Edge / Chrome / 新版 Firefox</div>
   <div class="dl-actions">
    <a class="dl-primary" id="dlMain" href="offline.html" download="历史时空舆图_离线版.html">下载离线版</a>
-   <a class="dl-alt" id="dlCdn" href="https://gcore.jsdelivr.net/gh/tansuanna1105/history-atlas@main/offline.html" target="_blank" rel="noopener">CDN 加速</a>
+   <a class="dl-alt" id="dlCdn" href="https://gcore.jsdelivr.net/gh/tansuanna1105/history-atlas@main/offline.html" download="历史时空舆图_离线版.html">CDN 加速</a>
   </div>
-  <p class="dl-hint">若点击后直接打开页面，请右键选择「另存为」保存文件。</p>
+  <p class="dl-hint">点任一按钮即保存到本地（文件约 5 MB，需几秒）。下载后双击这个 .html 文件即可断网使用。<b>请勿在新页面里右键另存</b>——部分 CDN 会把 HTML 当纯文本打开，那样存下来会是代码。</p>
  </div>
 </div>
 <script>
-(function(){var b=document.getElementById('dlOpen'),m=document.getElementById('dlMask'),x=document.getElementById('dlClose');
+(function(){
+ var b=document.getElementById('dlOpen'),m=document.getElementById('dlMask'),x=document.getElementById('dlClose');
  if(b&&m){b.onclick=function(){m.hidden=false;};x.onclick=function(){m.hidden=true;};
- m.onclick=function(e){if(e.target===m)m.hidden=true;};
- document.addEventListener('keydown',function(e){if(e.key==='Escape')m.hidden=true;});}
+  m.onclick=function(e){if(e.target===m)m.hidden=true;};
+  document.addEventListener('keydown',function(e){if(e.key==='Escape')m.hidden=true;});}
+ // 强制以 HTML 类型下载：fetch 内容 → Blob(text/html) → 触发保存。
+ // 这样即使 CDN 返回 text/plain，落盘的也是真正的 HTML，双击能打开。
+ var NAME='历史时空舆图_离线版.html';
+ function bind(a){
+  if(!a) return;
+  a.onclick=function(e){
+   e.preventDefault();
+   var url=a.getAttribute('href'),old=a.textContent;
+   a.textContent='正在下载…';a.style.pointerEvents='none';
+   fetch(url,{cache:'force-cache'}).then(function(r){
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    return r.arrayBuffer();
+   }).then(function(buf){
+    var blob=new Blob([buf],{type:'text/html;charset=utf-8'});
+    var u=URL.createObjectURL(blob);
+    var t=document.createElement('a');t.href=u;t.download=NAME;
+    document.body.appendChild(t);t.click();t.remove();
+    setTimeout(function(){URL.revokeObjectURL(u);},4000);
+    a.textContent='✓ 已保存';
+   }).catch(function(err){
+    // fetch 失败（离线/跨域受限）时回退到直接下载链接
+    var t=document.createElement('a');t.href=url;t.download=NAME;
+    document.body.appendChild(t);t.click();t.remove();
+    a.textContent='已转直接下载';
+   }).finally(function(){
+    setTimeout(function(){a.textContent=old;a.style.pointerEvents='';},2200);
+   });
+  };
+ }
+ bind(document.getElementById('dlMain'));
+ bind(document.getElementById('dlCdn'));
 })();
 </script>
 <!--DL_MODAL_END-->
